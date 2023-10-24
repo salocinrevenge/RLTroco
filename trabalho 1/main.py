@@ -1,3 +1,4 @@
+from typing import override
 import numpy as np
 import random
 
@@ -51,8 +52,21 @@ class Environment:
 
 class LearningStrategy:
 
-    def __init__(self, update:function):
-        self.update = update
+    def __init__(self):
+        pass
+
+    def update(self):
+        pass
+
+
+class MonteCarlo(LearningStrategy):
+
+    def __init__(self):
+        pass
+
+    @override
+    def update(self):
+        pass
 
 
 class Agent:
