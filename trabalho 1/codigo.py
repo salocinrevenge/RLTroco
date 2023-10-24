@@ -40,7 +40,7 @@ class Jogador():
 class Labirinto():
     def __init__(self, jogador = None, fator_estocastico=0):
         self.tabuleiroOriginal = np.asarray(list("##########"+
-                                    "#$.......#"+
+                                    "#.$......#"+
                                     "#........#"+
                                     "#........#"+
                                     "#........#"+
@@ -73,43 +73,75 @@ class Labirinto():
 class monteCarlo():
     def __init__(self,tabuleiro) -> None:
         self.contruirPoliticaInicial(tabuleiro)
-        self.testarPolitica()
+        self.atualizarPolitica(100)
 
     def contruirPoliticaInicial(self,tabuleiro):
         self.politicaAtual = np.full((tabuleiro.shape[0], tabuleiro.shape[1], 4),dtype=float, fill_value=0.25)
-        self.mostrarPolitica(self.politicaAtual)
     
-    def mostrarPolitica(self,politica):
-        for i in range(len(politica)):
-            for j in range(len(politica[i])):
-                for k, acao in enumerate("UDLR"):
-                    print(acao if politica[i][j][k] else "", end="")
-                print(" ", end="")
-            print()
+    def mostrarPolitica(self,politica, probabilidade=True):
+        if probabilidade:
+            for i in range(len(politica)):
+                for j in range(len(politica[i])):
+                    for k, acao in enumerate("UDLR"):
+                        print(f"{acao}({politica[i][j][k]})" if politica[i][j][k] else "", end="")
+                    print(" ", end="")
+                print()
+        else:
+            for i in range(len(politica)):
+                for j in range(len(politica[i])):
+                    possibilidades = []
+                    for k, acao in enumerate("UDLR"):
+                        possibilidades.append((acao,politica[i][j][k]))
+                    possibilidades.sort(key=lambda x: x[1], reverse=True)
+                    print(possibilidades[0][0], end=" ")
+                print()
 
-    def testarPolitica(self):
-        print("Testando politica 0")
-        numeroTestes = 10000
-        pontuacaoAtual = 0
-        for i in range(numeroTestes):
-            casosTestes = 0
-            pontuacao = 0
+    def atualizarPolitica(self, numeroMelhorias):
+        for i in range(numeroMelhorias):
+            print("Melhoria ", i, " :")
+            self.mostrarPolitica(self.politicaAtual,False)
             for pos in product(range(1,9), range(1,9)):
-                #print("Testando posicao inicial ",pos)
-                pontuacao += self.testarPosicao(pos)
-                casosTestes += 1
-            pontuacaoAtual += pontuacao/casosTestes
-        print("O valor dessa politica eh: ", pontuacaoAtual/numeroTestes)
+                self.testarPosicao(pos,numeroMelhorias*10)
 
-    def testarPosicao(self, pos):
-        self.player = Jogador(*pos,None,self.politicaAtual)
+    def testarPosicao(self, pos, numeroMelhorias):
+        # executa cada acao disponivel com a quantidade sendo numeroMelhorias*probabilidadeDaAcao
+        # marca o tempo de cada execucao e a media dos acertos
+        # apos executar td, atualiza a politica aumentando a probabilidade das acoes que tiveram mais acertos
+        # e diminuindo a probabilidade das acoes que tiveram menos acertos levando em conta a quantidade de acertos
+        # print("Testando posicao ", pos, " numeroMelhorias: ", numeroMelhorias)
+        acoesdisponiveis = {"U":self.politicaAtual[pos[0]][pos[1]][0], "D":self.politicaAtual[pos[0]][pos[1]][1], "L":self.politicaAtual[pos[0]][pos[1]][2], "R":self.politicaAtual[pos[0]][pos[1]][3]}
+        resultados = {"U":[0,0], "D":[0,0], "L":[0,0], "R":[0,0]}
+        for acao in acoesdisponiveis:
+            if acoesdisponiveis[acao] ==0:
+                continue
+            for i in range(numeroMelhorias):
+                resultado = self.testarAcao(pos,acao)   # executa a acao ate o final e retorna a pontuacao do personagem
+                resultados[acao][0] += resultado
+                resultados[acao][1] += 1
+        soma = 0
+        # print(f"resultados: {resultados}")
+        for acao in resultados:
+            if resultados[acao][1] == 0: # se uma acao tiver probabilidade 0
+                continue
+            soma += resultados[acao][0]/resultados[acao][1]
+        # print(f"resultados: {resultados} soma: {soma}")
+        for i, acao in enumerate(resultados):
+            if soma == 0:
+                porcAtual = 0
+            else:
+                porcAtual = ((resultados[acao][0]/resultados[acao][1])/soma)
+            self.politicaAtual[pos][i] = (self.politicaAtual[pos][i]+porcAtual)/2
+
+    def testarAcao(self, pos, acao):
+        jogador = Jogador(*pos,None,self.politicaAtual)
+        jogador.mover(acao)
         contador = 0
-        while self.player.labirinto.ver(*pos) != '$' and contador < 100:
-            self.player.decidir()
-            # self.player.labirinto.render()
+        #jogador.labirinto.render()
+        while jogador.labirinto.ver(*pos) != '$' and contador < 100:
+            jogador.decidir()
+            #jogador.labirinto.render()
             contador += 1
-        return self.player.pontos
-
+        return jogador.pontos
 
 
 
@@ -138,7 +170,7 @@ class monteCarlo():
 #     lab.player.mover(direcao)
 
 mapa = np.asarray(list("##########"+
-                                    "#$.......#"+
+                                    "#.$......#"+
                                     "#........#"+
                                     "#........#"+
                                     "#........#"+
