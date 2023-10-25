@@ -97,13 +97,11 @@ class MonteCarlo(LearningStrategy):
 class Agent:
 
     def __init__(self, strategy: LearningStrategy):
-        self.environment = strategy.environment
         self.strategy = strategy
+        self.environment = self.strategy.environment
     
 
     def act(self):
-        input = ...
+        input = self.strategy.get_next_action()
         reward = self.environment.react(input)
         self.strategy.update(reward)
-
-
