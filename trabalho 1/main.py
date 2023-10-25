@@ -63,6 +63,7 @@ class Environment:
         
         self.rewards = np.full((10, 10), -1, dtype=np.int64)
         self.rewards[0,0] = 100
+        self.terminal_states = [np.asarray([0,0])]
 
         self.cur_state = np.asarray([9,9])
         self.stochastic_threshold = stochastic_threshold
@@ -87,7 +88,6 @@ class Environment:
         self.walls[0,  :] += 2**self.wall_code['D']
         self.walls[:,  0] += 2**self.wall_code['L']
 
-        self.terminal_states = [np.asarray([0,0])]
 
     def render(self):
         self.renderer.render(self)
@@ -154,16 +154,16 @@ class MonteCarlo(LearningStrategy):
         G = 0
         for step in reversed(steps):
             G = G*self.gamma + step[2]
-            #if (step[0],step[1]) not in [(i[0],i[1]) for i in self.returns[self.environment.cur_state[0], self.environment.cur_state[1], step[1]]]:
-            self.returns[self.environment.cur_state[0], self.environment.cur_state[1], step[1]].append((step[0], step[1],G))
-            self.Q[self.environment.cur_state[0], self.environment.cur_state[1], step[1]] = np.mean([i[2] for i in self.returns[self.environment.cur_state[0], self.environment.cur_state[1], step[1]]])
-            self.policy[self.environment.cur_state[0], self.environment.cur_state[1]] = np.argmax(self.Q[self.environment.cur_state[0], self.environment.cur_state[1]])
+            # if (step[0],step[1]) not in [(i[0],i[1]) for i in self.returns[self.environment.cur_state[0], self.environment.cur_state[1], step[1]]]:
+            if not any(((step[0] == i[0]).all() and (step[1] == i[1]).all()) for i in self.returns[self.environment.cur_state[0], self.environment.cur_state[1], step[1]]):
+                self.returns[self.environment.cur_state[0], self.environment.cur_state[1], step[1]].append((step[0], step[1],G))
+                self.Q[self.environment.cur_state[0], self.environment.cur_state[1], step[1]] = np.mean([i[2] for i in self.returns[self.environment.cur_state[0], self.environment.cur_state[1], step[1]]])
+                self.policy[self.environment.cur_state[0], self.environment.cur_state[1]] = np.argmax(self.Q[self.environment.cur_state[0], self.environment.cur_state[1]])
             # self.update(reward)
     
     def train(self, num_iter):
         for _ in range(num_iter):
             self.run_episode()
-        print(self.policy)
 
     def get_next_action(self):
         return self.policy[self.environment.cur_state[0], self.environment.cur_state[1]]
@@ -182,9 +182,28 @@ class MonteCarlo(LearningStrategy):
 #         self.strategy.update(reward)
 
 
+def numbers_to_arrows(number):
+    match number:
+        case 0:
+            # return '↑'
+            return '↓'
+        case 1:
+            return '→'
+        case 2:
+            # return '↓'
+            return '↑'
+        case 3:
+            return '←'
+        case _:
+            return '?'
+
+
 
 if __name__ == '__main__':
     env = Environment()
     # env.render()
     strategy = MonteCarlo(env)
-    strategy.train(1000)
+    strategy.train(int(1e6))
+
+    numbers_to_arrows = np.vectorize(numbers_to_arrows)
+    print(numbers_to_arrows(strategy.policy))
