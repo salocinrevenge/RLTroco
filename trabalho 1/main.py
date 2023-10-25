@@ -1,4 +1,3 @@
-from typing import override
 import numpy as np
 import random
 
@@ -81,15 +80,12 @@ class MonteCarlo(LearningStrategy):
     def __init__(self, environment: Environment):
         super().__init__(environment)
 
-    @override
     def update(self):
         pass
 
-    @override
     def run_episode(self):
         pass
 
-    @override
     def get_next_action(self):
         return super().get_next_action()
 
