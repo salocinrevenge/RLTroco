@@ -37,6 +37,8 @@ class Environment:
         self.walls[-1, :] += 2**self.wall_code['D']
         self.walls[:, 0]  += 2**self.wall_code['L']
 
+        self.terminal_states = [np.asarray([0,0])]
+
     
     def react(self, input:str) -> int:
         if random.random() < self.stochastic_threshold:
@@ -49,30 +51,53 @@ class Environment:
         
         return self.rewards[self.cur_state[0], self.cur_state[1]]
 
+    def in_terminal_state(self):
+        return any((self.cur_state == i).all() for i in self.terminal_states)
+
+    def reset(self):
+        self.cur_state = np.asarray([9,9])
 
 class LearningStrategy:
 
-    def __init__(self):
-        pass
+    def __init__(self, environment: Environment):
+        self.environment = environment
+        self.V = np.zeros(self.environment.rewards.shape)
+        self.Q = np.zeros(self.environment.rewards.shape)
+        self.G = ...
+        self.gamma = 0.9
 
     def update(self):
         pass
 
+    def run_episode(self):
+        pass
+
+    def get_next_action(self):
+        random.choice(list('UDLR'))
+
 
 class MonteCarlo(LearningStrategy):
 
-    def __init__(self):
-        pass
+    def __init__(self, environment: Environment):
+        super().__init__(environment)
 
     @override
     def update(self):
         pass
 
+    @override
+    def run_episode(self):
+        pass
+
+    @override
+    def get_next_action(self):
+        return super().get_next_action()
+
 
 class Agent:
 
-    def __init__(self, environment: Environment, strategy: LearningStrategy):
-        self.environment = environment
+    def __init__(self, strategy: LearningStrategy):
+        self.environment = strategy.environment
         self.strategy = strategy
     
 
