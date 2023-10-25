@@ -73,7 +73,7 @@ class Labirinto():
 class monteCarlo():
     def __init__(self,tabuleiro) -> None:
         self.contruirPoliticaInicial(tabuleiro)
-        self.atualizarPolitica(100)
+        self.atualizarPolitica(10)
 
     def contruirPoliticaInicial(self,tabuleiro):
         self.politicaAtual = np.full((tabuleiro.shape[0], tabuleiro.shape[1], 4),dtype=float, fill_value=0.25)
@@ -101,7 +101,7 @@ class monteCarlo():
             print("Melhoria ", i, " :")
             self.mostrarPolitica(self.politicaAtual,False)
             for pos in product(range(1,9), range(1,9)):
-                self.testarPosicao(pos,numeroMelhorias*10)
+                self.testarPosicao(pos,numeroMelhorias)
 
     def testarPosicao(self, pos, numeroMelhorias):
         # executa cada acao disponivel com a quantidade sendo numeroMelhorias*probabilidadeDaAcao
