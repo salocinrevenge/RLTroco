@@ -77,11 +77,11 @@ class Environment:
 
     def __init__(self, stochastic_threshold=0):
         
-        self.rewards = np.full((10, 10), -1, dtype=np.int64)
+        self.rewards = np.full((3, 3), -1, dtype=np.int64)
         self.rewards[0,0] = 100
         self.terminal_states = [np.asarray([0,0])]
 
-        self.cur_state = np.asarray([9,9])
+        self.cur_state = np.asarray([2,2])
         self.stochastic_threshold = stochastic_threshold
         self.renderer = Render()
         
@@ -98,7 +98,7 @@ class Environment:
             'L': 3
         }
 
-        self.walls = np.zeros((10, 10), dtype=np.int64)
+        self.walls = np.zeros((3, 3), dtype=np.int64)
         self.walls[-1, :] += 2**self.wall_code['U']
         self.walls[:, -1] += 2**self.wall_code['R']
         self.walls[0,  :] += 2**self.wall_code['D']
@@ -114,6 +114,7 @@ class Environment:
             input = random.choice(list('UDLR'))
             input = self.wall_code[input]
         
+        
         movement_allowed = not is_nth_bit_on(self.walls[self.cur_state[0], self.cur_state[1]], input)
 
         if movement_allowed:
@@ -125,7 +126,7 @@ class Environment:
         return any((self.cur_state == i).all() for i in self.terminal_states)
 
     def reset(self):
-        self.cur_state = np.asarray([9,9])
+        self.cur_state = np.asarray([2,2])
     
     def get_size(self):
         return self.rewards.shape
@@ -162,20 +163,21 @@ class MonteCarlo(LearningStrategy):
 
 
     def run_episode(self, max_steps=100):
+
         self.environment.cur_state = np.asarray([random.randrange(self.environment.get_size()[0]), random.randrange(self.environment.get_size()[1])])   # comeca em um estado aleatorio
+        action = random.randrange(4)  # escolhe uma acao aleatoria
         step_count = 0  # conta o numero de passos
         steps = []  # guarda os passos
         while not self.environment.in_terminal_state() and step_count < max_steps:  # enquanto nao estiver em um estado terminal
             step_count +=1  # incrementa o numero de passos
-            action = self.get_next_action() # escolhe uma acao de acordo com a politica
             reward = self.environment.react(action) # reage a acao e recebe a recompensa
-            steps.append((self.environment.cur_state, action, reward)) # guarda o passo
+            steps.append((self.environment.cur_state.copy(), action, reward)) # guarda o passo
+            action = self.get_next_action() # escolhe uma acao de acordo com a politica
         G = 0   # inicializa o retorno
         for step in reversed(steps):
             G = G*self.gamma + step[2]  # calcula o retorno
-            if not any(((step[0] == i[0]).all() and (step[1] == i[1]).all()) for i in self.returns[self.environment.cur_state[0]][self.environment.cur_state[1]][step[1]]):
+            if not any(((step[0] == i[0]).all() and step[1] == i[1]) for i in self.returns[self.environment.cur_state[0]][self.environment.cur_state[1]][step[1]]):
                 self.returns[self.environment.cur_state[0]][self.environment.cur_state[1]][step[1]].append((step[0], step[1],G))
-                # print(self.returns)
                 self.Q[self.environment.cur_state[0], self.environment.cur_state[1], step[1]] = np.mean([i[2] for i in self.returns[self.environment.cur_state[0]][self.environment.cur_state[1]][step[1]]])
                 self.policy[self.environment.cur_state[0], self.environment.cur_state[1]] = np.argmax(self.Q[self.environment.cur_state[0], self.environment.cur_state[1]])
             # self.update(reward)
