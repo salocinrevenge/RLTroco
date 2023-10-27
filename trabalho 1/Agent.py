@@ -1,4 +1,5 @@
 import random
+from Renderer import Renderer
 class Agent():
     acoes = ['up', 'down', 'left', 'right']
     def __init__(self, x=None, y = None, environment= None, gamma = 0.99) -> None:
@@ -39,6 +40,7 @@ class Agent():
                     self.policy[i].append(random.choice(self.acoes))
                 else:
                     self.policy[i].append(self.acoes[0])
+        self.render = self.environment.render.addConteudo(self.policy)
 
     def iniciaRetorno(self, formato):
         """

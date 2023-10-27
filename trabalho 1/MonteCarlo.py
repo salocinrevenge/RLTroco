@@ -1,5 +1,6 @@
 from LearningStrategy import LearningStrategy
 import random
+import time
 class MonteCarlo(LearningStrategy):
     def __init__(self) -> None:
         pass
@@ -22,9 +23,10 @@ class MonteCarlo(LearningStrategy):
             #escolhe posicao aleatoria valida para o agente
             while True:
                 estado = (random.randrange(0, formato[0]), random.randrange(0, formato[1]))
+                # estado = (1,3)
                 if self.environment.mapaOriginal[estado[0]][estado[1]] in {self.environment.simbolosPadrao["path"], self.environment.simbolosPadrao["goal"]}:
                     break
-            self.episode(estado, acao, max_steps= formato[1]*formato[0])
+            self.episode(estado, acao, max_steps= formato[1]+formato[0])
             g = 0
             for t in range(len(self.agent.lembrancas)-1, -1, -1): 
                 memoria = self.agent.lembrancas[t]  # memoria = (estado, acao, reforco)
@@ -32,7 +34,7 @@ class MonteCarlo(LearningStrategy):
                 # verifica se o par estado acao ja foi inserido em returns
                 if self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["lastEpisode"] != ep:
                     self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["lastEpisode"] = ep
-                    self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["value"] = g
+                    self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["value"] += g
                     self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["count"] += 1
                     media = self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["value"]/self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["count"]
                     self.agent.livro_Q[memoria[0][0]][memoria[0][1]][memoria[1]] = media
@@ -42,8 +44,11 @@ class MonteCarlo(LearningStrategy):
         step_count = 0
         self.agent.lembrancas = []
         self.environment.setAgentPos(estado[0], estado[1])
-        while not self.environment.in_terminal_state() and step_count < max_steps:  # enquanto nao estiver em um estado terminal
-           step_count +=1  # incrementa o numero de passos
-           reward = self.environment.mover(self.agent,acao) # realiza a acao e recebe a recompensa
-           self.agent.lembrancas.append(((self.agent.y,self.agent.x), acao, reward)) # guarda o passo
-           acao = self.agent.get_action() # escolhe uma acao de acordo com a politica
+        while step_count < max_steps:  # enquanto nao estiver em um estado terminal
+            step_count +=1  # incrementa o numero de passos
+            posAnterior = (self.agent.y, self.agent.x)
+            reward = self.environment.mover(self.agent,acao) # realiza a acao e recebe a recompensa
+            self.agent.lembrancas.append((posAnterior, acao, reward)) # guarda o passo
+            acao = self.agent.get_action() # escolhe uma acao de acordo com a politica
+            if self.environment.in_terminal_state():
+                break

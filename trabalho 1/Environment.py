@@ -1,5 +1,6 @@
 from Agent import Agent
 from Renderer import Renderer
+import time
 class Environment:
     simbolosPadrao = {"agent": '@', "wall": '#', "path": '.', "goal":'$'}
     def __init__(self, path = None) -> None:
@@ -7,6 +8,7 @@ class Environment:
             self.mapaOriginal = self.carregarMapa(path)
         self.mapa = self.copiarMapa(self.mapaOriginal)
         self.render = Renderer(self, self.mapa, "Ambiente", (800, 800))
+        self.tempoEspera = 0
 
     def copiarMapa(self, mapa):
         mapaCopia = []
@@ -58,6 +60,7 @@ class Environment:
         Dada uma acao, move o agente no mapa
         a acao pode ser "up", "down", "left" ou "right"
         """
+        time.sleep(self.tempoEspera)
         direcao = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
         posicaofinal = (agent.y+direcao[acao][0], agent.x+direcao[acao][1])
         if self.mapa[posicaofinal[0]][posicaofinal[1]] != self.simbolosPadrao["wall"]:
@@ -70,7 +73,7 @@ class Environment:
             # atualiza a posicao do agente
             agent.setPos(x = posicaofinal[1], y = posicaofinal[0])
         # retorna o reforco da posicao final 
-        return self.reforcos[self.simbolos[self.mapaOriginal[posicaofinal[0]][posicaofinal[1]]]]
+        return self.reforcos[self.simbolos[self.mapaOriginal[agent.y][agent.x]]]
 
     def get_size(self):
         return len(self.mapa), len(self.mapa[0])
