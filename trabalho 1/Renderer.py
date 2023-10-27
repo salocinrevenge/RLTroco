@@ -11,6 +11,10 @@ class Renderer():
         if not self.titulo:
             self.titulo = type(chefe).__name__   # titulo é o nome da classe
         
+        self.tamanhosprite = 64
+        self.escala = (self.dimensoes[0]/len(self.conteudo[0]), self.dimensoes[1]/len(self.conteudo))
+        self.carregarSprites()
+
         # cria uma thread que roda o pygame
         mostrador = Thread(target=self.mostrar)
 
@@ -20,14 +24,22 @@ class Renderer():
     def desligar(self):
         self.running = False
 
+    def carregarSprites(self):
+        self.sprites = dict()
+        self.sprites["path"] = pygame.transform.scale(pygame.image.load("imgs/path.png"), (int(self.escala[0]), int(self.escala[1])))
+        self.sprites["wall"] = pygame.transform.scale(pygame.image.load("imgs/wall.png"), (int(self.escala[0]), int(self.escala[1])))
+        self.sprites["goal"] = pygame.transform.scale(pygame.image.load("imgs/goal.png"), (int(self.escala[0]), int(self.escala[1])))
+        self.sprites["agent"] = pygame.transform.scale(pygame.image.load("imgs/agent.png"), (int(self.escala[0]), int(self.escala[1])))
+
     def mostrar(self):
         # renderiza o ambiente
         pygame.init()
         self.screen = pygame.display.set_mode(self.dimensoes)
         pygame.display.set_caption(self.titulo)
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((0, 0, 0))
 
         while self.running:
+            pygame.time.delay(10)  # delay de 10ms
             # Botao de fechar
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -37,10 +49,13 @@ class Renderer():
             self.screen.fill((0,0,0))
             
             # desenha o conteudo
+            for i in range(len(self.conteudo)):
+                for j in range(len(self.conteudo[0])):
+                    celula = self.conteudo[i][j]
+                    objeto = self.chefe.simbolos[celula]
+                    self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
 
             # Atualizar a tela
             pygame.display.update()
-# se main
-if __name__ == '__main__':
-    Renderer(None, None)
+
         
