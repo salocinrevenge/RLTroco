@@ -9,7 +9,7 @@ class MonteCarlo(LearningStrategy):
         self.environment = environment
         self.agent = agent
     
-    def train(self, episodes, politicaAleatoria = True):
+    def train(self, episodes, politicaAleatoria = True, chanceExploracao = 0):
         # Initialize
         formato = self.environment.get_size()
         self.agent.iniciaPolicy(formato, politicaAleatoria)
@@ -17,16 +17,23 @@ class MonteCarlo(LearningStrategy):
         self.agent.iniciaRetorno(formato)
 
         for ep in range(episodes):
-            print(f"{ep=}")
-            acao = random.choice(self.agent.acoes)
-
-            #escolhe posicao aleatoria valida para o agente
+            if ep % (episodes//10) == 0:
+                print(f"{ep=}")
+            # escolhe posicao aleatoria valida para o agente
             while True:
                 estado = (random.randrange(0, formato[0]), random.randrange(0, formato[1]))
-                # estado = (1,3)
                 if self.environment.mapaOriginal[estado[0]][estado[1]] in {self.environment.simbolosPadrao["path"], self.environment.simbolosPadrao["goal"]}:
                     break
-            self.episode(estado, acao, max_steps= formato[1]+formato[0])
+            # escolhe uma acao diferente da dita pela politica atual
+            for _ in range(len(self.agent.acoes)*2):    # limite maximo de tentativas
+                acao = random.choice(self.agent.acoes)
+                if acao != self.agent.policy[estado[0]][estado[1]]:
+                    # se a acao nao te leva para uma parede
+                    if self.environment.util(estado, acao):
+                        break
+            else:
+                acao = self.agent.policy[estado[0]][estado[1]]
+            self.episode(estado, acao, max_steps= formato[1]*formato[0], chanceExploracao = chanceExploracao)
             g = 0
             for t in range(len(self.agent.lembrancas)-1, -1, -1): 
                 memoria = self.agent.lembrancas[t]  # memoria = (estado, acao, reforco)
@@ -40,7 +47,7 @@ class MonteCarlo(LearningStrategy):
                     self.agent.livro_Q[memoria[0][0]][memoria[0][1]][memoria[1]] = media
                     self.agent.policy[memoria[0][0]][memoria[0][1]] = max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[memoria[0][0]][memoria[0][1]][acao])    # recebe a acao que maximiza o valor de Q
 
-    def episode(self, estado, acao, max_steps):
+    def episode(self, estado, acao, max_steps, chanceExploracao = 0):
         step_count = 0
         self.agent.lembrancas = []
         self.environment.setAgentPos(estado[0], estado[1])
@@ -49,6 +56,13 @@ class MonteCarlo(LearningStrategy):
             posAnterior = (self.agent.y, self.agent.x)
             reward = self.environment.mover(self.agent,acao) # realiza a acao e recebe a recompensa
             self.agent.lembrancas.append((posAnterior, acao, reward)) # guarda o passo
-            acao = self.agent.get_action() # escolhe uma acao de acordo com a politica
+            if random.randint(0, 100)< (1-chanceExploracao)*100:
+                acao = self.agent.get_action() # escolhe uma acao de acordo com a politica
+            else:
+                for _ in range(len(self.agent.acoes)*2):    # limite maximo de tentativas
+                    acao = random.choice(self.agent.acoes)
+                    # se a acao nao te leva para uma parede
+                    if self.environment.util(estado, acao):
+                        break
             if self.environment.in_terminal_state():
                 break

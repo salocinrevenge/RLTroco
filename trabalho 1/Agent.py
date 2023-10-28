@@ -2,7 +2,7 @@ import random
 from Renderer import Renderer
 class Agent():
     acoes = ['up', 'down', 'left', 'right']
-    def __init__(self, x=None, y = None, environment= None, gamma = 0.60) -> None:
+    def __init__(self, x=None, y = None, environment= None, gamma = 0.9) -> None:
         if environment:
             self.environment = environment
 
@@ -35,7 +35,10 @@ class Agent():
         self.policy = []
         for i in range(formato[0]):
             self.policy.append([])
-            for _ in range(formato[1]):
+            for j in range(formato[1]):
+                if self.environment.simbolos[self.environment.mapaOriginal[i][j]] == "wall":
+                    self.policy[i].append("wall")
+                    continue
                 if politicaAleatoria:
                     self.policy[i].append(random.choice(self.acoes))
                 else:

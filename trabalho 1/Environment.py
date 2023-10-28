@@ -75,6 +75,14 @@ class Environment:
         # retorna o reforco da posicao final 
         return self.reforcos[self.simbolos[self.mapaOriginal[agent.y][agent.x]]]
 
+    def util(self, pos, acao):
+        """
+        Dada uma posicao e uma acao, retorna o que tem na posicao destino
+        """
+        direcao = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
+        posicaofinal = (pos[0]+direcao[acao][0], pos[1]+direcao[acao][1])
+        return self.simbolos[self.mapa[posicaofinal[0]][posicaofinal[1]]] != "wall"
+
     def get_size(self):
         return len(self.mapa), len(self.mapa[0])
     
