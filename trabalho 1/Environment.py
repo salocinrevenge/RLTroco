@@ -7,7 +7,7 @@ class Environment:
         if path:
             self.mapaOriginal = self.carregarMapa(path)
         self.mapa = self.copiarMapa(self.mapaOriginal)
-        self.render = Renderer(self, self.mapa, "Ambiente", (800, 800))
+        self.render = Renderer(self, self.mapa, "Ambiente")
         self.tempoEspera = 0
 
     def copiarMapa(self, mapa):

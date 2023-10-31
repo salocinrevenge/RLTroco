@@ -15,6 +15,10 @@ class Renderer():
         
         self.tamanhosprite = 64
         self.escala = (self.dimensoes[0]/len(self.conteudo[0]), self.dimensoes[1]/len(self.conteudo))
+        while self.escala[0] < self.tamanhosprite//8 or self.escala[1] < self.tamanhosprite//8: # redimensiona pra pp
+            self.dimensoes =(int(self.dimensoes[0] *1.1), int(self.dimensoes[1]*1.1))
+            self.escala = (self.dimensoes[0]/len(self.conteudo[0]), self.dimensoes[1]/len(self.conteudo))
+
         self.carregarSprites()
 
         # cria uma thread que roda o pygame
