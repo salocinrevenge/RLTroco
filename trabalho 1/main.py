@@ -162,7 +162,7 @@ class MonteCarlo(LearningStrategy):
                     self.returns[i][j].append([])
 
 
-    def run_episode(self, max_steps=100):
+    def run_episode(self, max_steps=1000):
 
         self.environment.cur_state = np.asarray([random.randrange(self.environment.get_size()[0]), random.randrange(self.environment.get_size()[1])])   # comeca em um estado aleatorio
         action = random.randrange(4)  # escolhe uma acao aleatoria

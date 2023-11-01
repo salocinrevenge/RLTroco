@@ -3,12 +3,14 @@ from Renderer import Renderer
 import time
 class Environment:
     simbolosPadrao = {"agent": '@', "wall": '#', "path": '.', "goal":'$'}
-    def __init__(self, path = None) -> None:
-        if path:
-            self.mapaOriginal = self.carregarMapa(path)
+    def __init__(self, path, display=True) -> None:
+        self.display = display
+        self.mapaOriginal = self.carregarMapa(path)
         self.mapa = self.copiarMapa(self.mapaOriginal)
-        self.render = Renderer(self, self.mapa, "Ambiente")
         self.tempoEspera = 0
+
+        if self.display:
+            self.render = Renderer(self, self.mapa, "Ambiente")
 
     def copiarMapa(self, mapa):
         mapaCopia = []
@@ -50,7 +52,7 @@ class Environment:
                     if char == '\n':
                         continue
                     if self.simbolos[char] == 'agent':
-                        self.agent = Agent(x=j, y=i, environment=self)
+                        self.agent = Agent(x=j, y=i, environment=self, display=self.display)
                         char = self.simbolosPadrao["path"]
                     mapa[-1].append(self.simbolosPadrao[self.simbolos[char]])
         return mapa
@@ -71,7 +73,7 @@ class Environment:
             self.mapa[posicaofinal[0]][posicaofinal[1]] = self.simbolosPadrao["agent"]
             
             # atualiza a posicao do agente
-            agent.setPos(x = posicaofinal[1], y = posicaofinal[0])
+            agent.setPos(posicaofinal)
         # retorna o reforco da posicao final 
         return self.reforcos[self.simbolos[self.mapaOriginal[agent.y][agent.x]]]
 
@@ -88,5 +90,5 @@ class Environment:
     
     def setAgentPos(self, i, j):
         self.mapa[self.agent.y][self.agent.x] = self.mapaOriginal[self.agent.y][self.agent.x]
-        self.agent.setPos(j, i)
+        self.agent.setPos((i, j))
         self.mapa[i][j] = self.simbolosPadrao["agent"]

@@ -1,13 +1,17 @@
-from LearningStrategy import LearningStrategy
 import random
-import time
-class MonteCarlo(LearningStrategy):
-    def __init__(self) -> None:
+
+class LearningStrategy():
+    def train(self, episodes):
         pass
 
     def setup(self, environment, agent):
         self.environment = environment
         self.agent = agent
+
+class MonteCarlo(LearningStrategy):
+    def __init__(self) -> None:
+        pass
+
     
     def train(self, episodes, politicaAleatoria = True, chanceExploracao = 0):
         # Initialize
@@ -29,7 +33,7 @@ class MonteCarlo(LearningStrategy):
                 acao = random.choice(self.agent.acoes)
                 if acao != self.agent.policy[estado[0]][estado[1]]:
                     # se a acao nao te leva para uma parede
-                    if self.environment.util(estado, acao):
+                    if self.environment.util(estado, acao): 
                         break
             else:
                 acao = self.agent.policy[estado[0]][estado[1]]
@@ -47,22 +51,30 @@ class MonteCarlo(LearningStrategy):
                     self.agent.livro_Q[memoria[0][0]][memoria[0][1]][memoria[1]] = media
                     self.agent.policy[memoria[0][0]][memoria[0][1]] = max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[memoria[0][0]][memoria[0][1]][acao])    # recebe a acao que maximiza o valor de Q
 
-    def episode(self, estado, acao, max_steps, chanceExploracao = 0):
+    def episode(self, estado, acao, max_steps, chanceExploracao=0):
         step_count = 0
         self.agent.lembrancas = []
         self.environment.setAgentPos(estado[0], estado[1])
-        while step_count < max_steps:  # enquanto nao estiver em um estado terminal
+
+        while (not self.environment.in_terminal_state()) and (step_count < max_steps):  # enquanto nao estiver em um estado terminal
             step_count +=1  # incrementa o numero de passos
             posAnterior = (self.agent.y, self.agent.x)
             reward = self.environment.mover(self.agent,acao) # realiza a acao e recebe a recompensa
             self.agent.lembrancas.append((posAnterior, acao, reward)) # guarda o passo
-            if random.randint(0, 100)< (1-chanceExploracao)*100:
-                acao = self.agent.get_action() # escolhe uma acao de acordo com a politica
-            else:
+            if random.random() < chanceExploracao:
                 for _ in range(len(self.agent.acoes)*2):    # limite maximo de tentativas
                     acao = random.choice(self.agent.acoes)
                     # se a acao nao te leva para uma parede
-                    if self.environment.util(estado, acao):
-                        break
-            if self.environment.in_terminal_state():
-                break
+                    if self.environment.util(estado, acao): break
+            else:
+                acao = self.agent.get_action() # escolhe uma acao de acordo com a politica
+
+
+class SARSA(LearningStrategy):
+    ...
+
+class LinearFunctionApproximation(LearningStrategy):
+    ...
+
+class QLearning(LearningStrategy):
+    ...

@@ -1,16 +1,13 @@
 import random
-from Renderer import Renderer
+
 class Agent():
     acoes = ['up', 'down', 'left', 'right']
-    def __init__(self, x=None, y = None, environment= None, gamma = 0.9) -> None:
-        if environment:
-            self.environment = environment
-
-        if x:
-            self.x = x
-        if y:
-            self.y = y
+    def __init__(self, x, y, environment, gamma = 0.9, display=True):
+        self.environment = environment
+        self.x = x
+        self.y = y
         self.gamma = gamma
+        self.display = display
 
     def iniciaQ(self, formato):
         """
@@ -18,7 +15,7 @@ class Agent():
         ele armazena 
         
         """
-        self.livro_Q = []
+        self.livro_Q: list[list[dict]] = []
         for i in range(formato[0]):
             self.livro_Q.append([])
             for _ in range(formato[1]):
@@ -32,7 +29,7 @@ class Agent():
         a ser tomada ate o momento
         
         """
-        self.policy = []
+        self.policy: list[list[str]] = []
         for i in range(formato[0]):
             self.policy.append([])
             for j in range(formato[1]):
@@ -43,7 +40,9 @@ class Agent():
                     self.policy[i].append(random.choice(self.acoes))
                 else:
                     self.policy[i].append(self.acoes[0])
-        self.render = self.environment.render.addConteudo(self.policy)
+        
+        if self.display:
+            self.render = self.environment.render.addConteudo(self.policy)
 
     def iniciaRetorno(self, formato):
         """
@@ -52,7 +51,7 @@ class Agent():
         o numero de vezes que o par estado acao foi visitado e o ultimo
         episodio em que o par estado acao foi visitado
         """
-        self.returns = []
+        self.returns: list[list[dict]] = []
         for i in range(formato[0]):
             self.returns.append([])
             for j in range(formato[1]):
@@ -63,9 +62,9 @@ class Agent():
     def setEnvironment(self, environment):
         self.environment = environment
     
-    def setPos(self, x, y):
-        self.x = x
-        self.y = y
+    def setPos(self, position):
+        self.x = position[1]
+        self.y = position[0]
 
     def mover(self, acao):
         return self.environment.mover(self, acao)
