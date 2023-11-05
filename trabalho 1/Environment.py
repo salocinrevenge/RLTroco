@@ -4,6 +4,7 @@ import time
 class Environment:
     simbolosPadrao = {"agent": '@', "wall": '#', "path": '.', "goal":'$'}
     def __init__(self, path = None) -> None:
+        self.agentPos = []
         if path:
             self.mapaOriginal = self.carregarMapa(path)
         self.mapa = self.copiarMapa(self.mapaOriginal)
@@ -18,8 +19,8 @@ class Environment:
                 mapaCopia[-1].append(celula)
         return mapaCopia
 
-    def getAgent(self) -> Agent:
-        return self.agent
+    def setAgent(self, agent) -> Agent:
+        self.agent = agent
 
     def in_terminal_state(self):
         return self.mapaOriginal[self.agent.y][self.agent.x] == self.simbolosPadrao["goal"]
@@ -50,7 +51,7 @@ class Environment:
                     if char == '\n':
                         continue
                     if self.simbolos[char] == 'agent':
-                        self.agent = Agent(x=j, y=i, environment=self)
+                        self.agentPos.append((i, j))
                         char = self.simbolosPadrao["path"]
                     mapa[-1].append(self.simbolosPadrao[self.simbolos[char]])
         return mapa
@@ -87,6 +88,13 @@ class Environment:
         return len(self.mapa), len(self.mapa[0])
     
     def setAgentPos(self, i, j):
-        self.mapa[self.agent.y][self.agent.x] = self.mapaOriginal[self.agent.y][self.agent.x]
+        if self.agent.y != None and self.agent.x != None:
+            self.mapa[self.agent.y][self.agent.x] = self.mapaOriginal[self.agent.y][self.agent.x]
         self.agent.setPos(j, i)
         self.mapa[i][j] = self.simbolosPadrao["agent"]
+
+    def get_metrics(self):
+        pontuacao = 0
+        for pos in self.agentPos:
+            pontuacao += max(self.agent.livro_Q[pos[0]][pos[1]].values())
+        return pontuacao/len(self.agentPos)

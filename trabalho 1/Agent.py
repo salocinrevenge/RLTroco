@@ -2,14 +2,9 @@ import random
 from Renderer import Renderer
 class Agent():
     acoes = ['up', 'down', 'left', 'right']
-    def __init__(self, x=None, y = None, environment= None, gamma = 0.9) -> None:
-        if environment:
-            self.environment = environment
-
-        if x:
-            self.x = x
-        if y:
-            self.y = y
+    def __init__(self, gamma = 0.9) -> None:
+        self.x = None
+        self.y = None
         self.gamma = gamma
 
     def iniciaQ(self, formato):

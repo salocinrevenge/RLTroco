@@ -15,10 +15,11 @@ class MonteCarlo(LearningStrategy):
         self.agent.iniciaPolicy(formato, politicaAleatoria)
         self.agent.iniciaQ(formato)
         self.agent.iniciaRetorno(formato)
-
-        for ep in range(episodes):
+        self.metricas = []
+        for ep in range(1,episodes+1):
             if ep % (episodes//10) == 0:
-                print(f"{ep=}")
+                print(f"Episodio {ep} de {episodes} ", end = "\t")
+
             # escolhe posicao aleatoria valida para o agente
             while True:
                 estado = (random.randrange(0, formato[0]), random.randrange(0, formato[1]))
@@ -46,6 +47,9 @@ class MonteCarlo(LearningStrategy):
                     media = self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["value"]/self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["count"]
                     self.agent.livro_Q[memoria[0][0]][memoria[0][1]][memoria[1]] = media
                     self.agent.policy[memoria[0][0]][memoria[0][1]] = max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[memoria[0][0]][memoria[0][1]][acao])    # recebe a acao que maximiza o valor de Q
+            self.metricas.append(self.environment.get_metrics())
+            if ep % (episodes//10) == 0:
+                print(f"Pontuacao total nos pontos destacados: {self.metricas[-1]}")
 
     def episode(self, estado, acao, max_steps, chanceExploracao = 0):
         step_count = 0

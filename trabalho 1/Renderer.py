@@ -1,8 +1,10 @@
 import pygame
 from threading import Thread
+import time
 
 class Renderer():
-    def __init__(self, chefe, conteudo, titulo=None, dimensoes=(800, 800)):
+    def __init__(self, chefe, conteudo, titulo=None, dimensoes=(800, 800), visual = True):
+        self.visual = visual
         self.chefe = chefe
         self.conteudo = conteudo
         self.conteudos = [conteudo] # para trocar entre janelas
@@ -19,7 +21,8 @@ class Renderer():
             self.dimensoes =(int(self.dimensoes[0] *1.1), int(self.dimensoes[1]*1.1))
             self.escala = (self.dimensoes[0]/len(self.conteudo[0]), self.dimensoes[1]/len(self.conteudo))
 
-        self.carregarSprites()
+        if visual:
+            self.carregarSprites()
 
         # cria uma thread que roda o pygame
         mostrador = Thread(target=self.mostrar)
@@ -47,44 +50,49 @@ class Renderer():
 
     def mostrar(self):
         # renderiza o ambiente
-        pygame.init()
-        self.screen = pygame.display.set_mode(self.dimensoes)
-        pygame.display.set_caption(self.titulo)
-        self.screen.fill((0, 0, 0))
+        if self.visual:
+            pygame.init()
+            self.screen = pygame.display.set_mode(self.dimensoes)
+            pygame.display.set_caption(self.titulo)
+            self.screen.fill((0, 0, 0))
 
-        while self.running:
-            pygame.time.delay(10)  # delay de 10ms
-            # Botao de fechar
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    self.running = False
-                # se apertar "p"
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        self.iConteudoAtual = 1
-                        self.conteudo = self.conteudos[self.iConteudoAtual]
+        if self.visual:
+            while self.running:
+                pygame.time.delay(10)  # delay de 10ms
+                # Botao de fechar
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        self.running = False
+                    # se apertar "p"
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_p:
+                            self.iConteudoAtual = 1
+                            self.conteudo = self.conteudos[self.iConteudoAtual]
 
-                if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_p:
-                        self.iConteudoAtual = 0
-                        self.conteudo = self.conteudos[self.iConteudoAtual]
+                    if event.type == pygame.KEYUP:
+                        if event.key == pygame.K_p:
+                            self.iConteudoAtual = 0
+                            self.conteudo = self.conteudos[self.iConteudoAtual]
 
-            # limpa a tela
-            self.screen.fill((0,0,0))
-            
-            # desenha o conteudo
-            for i in range(len(self.conteudo)):
-                for j in range(len(self.conteudo[0])):
-                    celula = self.conteudo[i][j]
-                    # se o conteudo de celula estiver no dicionario de sprites
-                    if celula in self.sprites:
-                        objeto = celula
-                    else:
-                        objeto = self.chefe.simbolos[celula]
-                    self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
+                # limpa a tela
+                self.screen.fill((0,0,0))
+                
+                # desenha o conteudo
+                for i in range(len(self.conteudo)):
+                    for j in range(len(self.conteudo[0])):
+                        celula = self.conteudo[i][j]
+                        # se o conteudo de celula estiver no dicionario de sprites
+                        if celula in self.sprites:
+                            objeto = celula
+                        else:
+                            objeto = self.chefe.simbolos[celula]
+                        self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
 
-            # Atualizar a tela
-            pygame.display.update()
+                # Atualizar a tela
+                pygame.display.update()
+        else:
+            print(self.conteudo)
+            time.sleep(10)
 
         
