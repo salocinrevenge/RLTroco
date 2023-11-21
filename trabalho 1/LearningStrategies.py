@@ -71,7 +71,30 @@ class MonteCarlo(LearningStrategy):
 
 
 class SARSA(LearningStrategy):
-    ...
+    def train(self, episodes, politicaAleatoria = True, chanceExploracao = 0):
+        """
+        inicializa Q = 0
+        for ep in range(episodes):
+            inicializa E ( = Q)
+            escolhe um s de A
+            escolhe s,a iniciais
+            while not in terminal state and step_count < max_steps:
+                escolhe acao a usando Q
+                realiza acao a
+                recebe reforco r
+                escolhe acao a' usando e-greedy
+                delta = r + gamma*Q(s',a') - Q(s,a)
+                E(s,a) += 1
+                for s,a visitados este episõdio:
+                    Q(s,a) += alpha*delta*E(s,a)
+                    E(s,a) *= gamma*lambda
+
+                s = s'
+                a = a'
+        
+        computa policy
+        """
+    
 
 class LinearFunctionApproximation(LearningStrategy):
     ...
