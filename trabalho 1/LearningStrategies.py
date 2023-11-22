@@ -1,12 +1,14 @@
 import random
+from Environment import Environment
+from Agent import Agent
 
 class LearningStrategy():
     def train(self, episodes):
         pass
 
     def setup(self, environment, agent):
-        self.environment = environment
-        self.agent = agent
+        self.environment: Environment = environment
+        self.agent: Agent = agent
 
 class MonteCarlo(LearningStrategy):
     def __init__(self) -> None:
@@ -71,29 +73,58 @@ class MonteCarlo(LearningStrategy):
 
 
 class SARSA(LearningStrategy):
-    def train(self, episodes, politicaAleatoria = True, chanceExploracao = 0):
-        """
-        inicializa Q = 0
-        for ep in range(episodes):
-            inicializa E ( = Q)
-            escolhe um s de A
-            escolhe s,a iniciais
-            while not in terminal state and step_count < max_steps:
-                escolhe acao a usando Q
-                realiza acao a
-                recebe reforco r
-                escolhe acao a' usando e-greedy
-                delta = r + gamma*Q(s',a') - Q(s,a)
-                E(s,a) += 1
-                for s,a visitados este episõdio:
-                    Q(s,a) += alpha*delta*E(s,a)
-                    E(s,a) *= gamma*lambda
 
-                s = s'
-                a = a'
-        
-        computa policy
-        """
+    def __init__(self, lam):
+        super().__init__()
+        self.lam = lam
+
+    def get_epsilon_greedy(self, exploration_chance, estado):
+        if random.random() < exploration_chance:
+            return random.choice(self.agent.acoes)
+        else:
+            return max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[estado[0]][estado[1]][acao])
+                
+    def train(self, episodes, politicaAleatoria=True, chanceExploracao=0, alpha=0.1):
+
+        formato = self.environment.getSize()
+        self.agent.iniciaQ(formato, 0)
+
+        for ep in range(episodes):
+            if ep % (episodes//10) == 0: print(f"{ep=}")
+            
+            E = dict()
+
+            # escolhe posicao aleatoria valida para o agente
+            while True:
+                estado = (random.randrange(0, formato[0]), random.randrange(0, formato[1]))
+                if self.environment.mapaOriginal[estado[0]][estado[1]] in {self.environment.simbolosPadrao["path"], self.environment.simbolosPadrao["goal"]}:
+                    break
+            
+            S = (self.agent.y, self.agent.x)
+            A = random.choice(self.agent.acoes)
+
+            step_count = 0
+            max_steps = 1e4
+            while (not self.environment.in_terminal_state()) and (step_count < max_steps):
+                R = self.environment.mover(self.agent, A)
+                S_prime = (self.agent.y, self.agent.x)
+                A_prime = self.get_epsilon_greedy(chanceExploracao, S_prime)
+                pair = (S, A)
+                E[pair] = E[pair] + 1 if pair in E.keys() else 1
+
+                delta = R + self.agent.gamma * self.agent.livro_Q[S[0]][S[1]][A] - self.agent.livro_Q[S_prime[0]][S_prime[1]][A_prime]
+
+                for (s, a) in E.keys():
+                    self.agent.livro_Q[S[0]][S[1]][A] += alpha * delta * E[(s,a)]
+                    E[(S,A)] *= self.agent.gamma * self.lam
+                
+                S = S_prime
+                A = A_prime
+
+        self.agent.iniciaPolicy(formato, politicaAleatoria)
+        for i in range(len(self.agent.livro_Q)):
+            for j in range(len(self.agent.livro_Q[0])):
+                self.agent.policy[i][j] = max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[i][j][acao])
     
 
 class LinearFunctionApproximation(LearningStrategy):
