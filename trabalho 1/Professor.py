@@ -30,7 +30,7 @@ if __name__ == '__main__':
     if learning_strategy in ["montecarlo","monte","monte-carlo","mc"]:
         learning_strategy = MonteCarlo()
     elif learning_strategy in ["sarsa" , "s"]:
-        raise NotImplementedError("SARSA not implemented")
+        learning_strategy = SARSA(0.5)
     elif learning_strategy in ["qlearning","q-learning","q"]:
         raise NotImplementedError("Q-Learning not implemented")
     elif learning_strategy in ["linear","lfa","l"]:

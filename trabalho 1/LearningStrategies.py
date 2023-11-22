@@ -84,9 +84,9 @@ class SARSA(LearningStrategy):
         else:
             return max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[estado[0]][estado[1]][acao])
                 
-    def train(self, episodes, politicaAleatoria=True, chanceExploracao=0, alpha=0.1):
+    def train(self, episodes, politicaAleatoria=True, chanceExploracao=0, alpha=0.01):
 
-        formato = self.environment.getSize()
+        formato = self.environment.get_size()
         self.agent.iniciaQ(formato, 0)
 
         for ep in range(episodes):
@@ -96,15 +96,16 @@ class SARSA(LearningStrategy):
 
             # escolhe posicao aleatoria valida para o agente
             while True:
-                estado = (random.randrange(0, formato[0]), random.randrange(0, formato[1]))
-                if self.environment.mapaOriginal[estado[0]][estado[1]] in {self.environment.simbolosPadrao["path"], self.environment.simbolosPadrao["goal"]}:
+                S = (random.randrange(0, formato[0]), random.randrange(0, formato[1]))
+                if self.environment.mapaOriginal[S[0]][S[1]] in {self.environment.simbolosPadrao["path"], self.environment.simbolosPadrao["goal"]}:
                     break
+
+            self.environment.setAgentPos(S[0], S[1])
             
-            S = (self.agent.y, self.agent.x)
             A = random.choice(self.agent.acoes)
 
             step_count = 0
-            max_steps = 1e4
+            max_steps = formato[0]*formato[1]
             while (not self.environment.in_terminal_state()) and (step_count < max_steps):
                 R = self.environment.mover(self.agent, A)
                 S_prime = (self.agent.y, self.agent.x)
@@ -114,17 +115,26 @@ class SARSA(LearningStrategy):
 
                 delta = R + self.agent.gamma * self.agent.livro_Q[S[0]][S[1]][A] - self.agent.livro_Q[S_prime[0]][S_prime[1]][A_prime]
 
+                print(delta, R,  self.agent.gamma * self.agent.livro_Q[S[0]][S[1]][A], self.agent.livro_Q[S_prime[0]][S_prime[1]][A_prime])
                 for (s, a) in E.keys():
                     self.agent.livro_Q[S[0]][S[1]][A] += alpha * delta * E[(s,a)]
                     E[(S,A)] *= self.agent.gamma * self.lam
                 
                 S = S_prime
                 A = A_prime
+                step_count += 1
 
         self.agent.iniciaPolicy(formato, politicaAleatoria)
         for i in range(len(self.agent.livro_Q)):
             for j in range(len(self.agent.livro_Q[0])):
-                self.agent.policy[i][j] = max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[i][j][acao])
+                if(self.environment.mapaOriginal[i][j] == '#'): self.agent.policy[i][j] = "wall"
+                else: 
+                    self.agent.policy[i][j] = max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[i][j][acao])
+                    print(i,j)
+                    for acao in self.agent.acoes:
+                        print(acao, self.agent.livro_Q[i][j][acao])
+                
+
     
 
 class LinearFunctionApproximation(LearningStrategy):
