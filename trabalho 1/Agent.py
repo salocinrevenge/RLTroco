@@ -9,7 +9,7 @@ class Agent():
         self.gamma = gamma
         self.display = display
 
-    def iniciaQ(self, formato):
+    def iniciaQ(self, formato, inicializacao = float("-inf")):
         """
         livroQ é uma lista de listas de dicionarios,
         ele armazena 
@@ -21,7 +21,7 @@ class Agent():
             for _ in range(formato[1]):
                 self.livro_Q[i].append(dict())
                 for acao in self.acoes:
-                    self.livro_Q[i][-1][acao] = float("-inf")
+                    self.livro_Q[i][-1][acao] = inicializacao
     
     def iniciaPolicy(self, formato, politicaAleatoria):
         """
