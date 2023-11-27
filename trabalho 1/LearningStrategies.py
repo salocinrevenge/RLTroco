@@ -113,12 +113,11 @@ class SARSA(LearningStrategy):
                 pair = (S, A)
                 E[pair] = E[pair] + 1 if pair in E.keys() else 1
 
-                delta = R + self.agent.gamma * self.agent.livro_Q[S[0]][S[1]][A] - self.agent.livro_Q[S_prime[0]][S_prime[1]][A_prime]
+                delta = R + self.agent.gamma * self.agent.livro_Q[S_prime[0]][S_prime[1]][A_prime] - self.agent.livro_Q[S[0]][S[1]][A]
 
-                print(delta, R,  self.agent.gamma * self.agent.livro_Q[S[0]][S[1]][A], self.agent.livro_Q[S_prime[0]][S_prime[1]][A_prime])
                 for (s, a) in E.keys():
                     self.agent.livro_Q[S[0]][S[1]][A] += alpha * delta * E[(s,a)]
-                    E[(S,A)] *= self.agent.gamma * self.lam
+                    E[(s,a)] *= self.agent.gamma * self.lam
                 
                 S = S_prime
                 A = A_prime
