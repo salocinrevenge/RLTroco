@@ -10,8 +10,9 @@ def parse_args():
     parser.add_argument('--room', '-r', type=str, required=True)
     parser.add_argument('--episodes', '-e', type=int, default=100_000)
     parser.add_argument('--exploration-chance', '-c', type=float, default=0.3, dest='exploration_chance')
-    parser.add_argument('--strategy', '-s', type=str, dest='learning_strategy', required=True)
+    parser.add_argument('--learning-strategy', '-l', type=str, dest='learning_strategy', required=True)
     parser.add_argument('--no-display', '-d', action='store_true', dest='no_display')
+    parser.add_argument('--stochastic', '-s', type=float, dest='stochastic', default=0.0)
 
     return parser.parse_args()
 
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     else:
         raise ValueError(f"Invalid learning strategy {args.learning_strategy}")
 
-    environment = Environment(room_path, not args.no_display)
+    environment = Environment(room_path, args.stochastic, not args.no_display)
     agent = environment.getAgent()
     learning_strategy.setup(environment, agent)
 

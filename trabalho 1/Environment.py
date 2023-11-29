@@ -1,13 +1,15 @@
 from Agent import Agent
 from Renderer import Renderer
 import time
+import random
 class Environment:
     simbolosPadrao = {"agent": '@', "wall": '#', "path": '.', "goal":'$'}
-    def __init__(self, path, display=True) -> None:
+    def __init__(self, path, stochastic, display=True) -> None:
         self.display = display
         self.mapaOriginal = self.carregarMapa(path)
         self.mapa = self.copiarMapa(self.mapaOriginal)
         self.tempoEspera = 0
+        self.stochastic = stochastic
 
         if self.display:
             self.render = Renderer(self, self.mapa, "Ambiente")
@@ -62,6 +64,8 @@ class Environment:
         Dada uma acao, move o agente no mapa
         a acao pode ser "up", "down", "left" ou "right"
         """
+        if random.random() < self.stochastic:
+            acao = random.choice(agent.acoes)
         time.sleep(self.tempoEspera)
         direcao = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
         posicaofinal = (agent.y+direcao[acao][0], agent.x+direcao[acao][1])
