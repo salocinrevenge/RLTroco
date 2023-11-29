@@ -21,6 +21,7 @@ class MonteCarlo(LearningStrategy):
         self.agent.iniciaPolicy(formato, politicaAleatoria)
         self.agent.iniciaQ(formato)
         self.agent.iniciaRetorno(formato)
+        chanceExploracaoAtual = chanceExploracao
 
         for ep in range(episodes):
             if ep % (episodes//10) == 0:
@@ -52,7 +53,9 @@ class MonteCarlo(LearningStrategy):
                     media = self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["value"]/self.agent.returns[memoria[0][0]][memoria[0][1]][memoria[1]]["count"]
                     self.agent.livro_Q[memoria[0][0]][memoria[0][1]][memoria[1]] = media
                     self.agent.policy[memoria[0][0]][memoria[0][1]] = max(self.agent.acoes, key = lambda acao: self.agent.livro_Q[memoria[0][0]][memoria[0][1]][acao])    # recebe a acao que maximiza o valor de Q
-
+            # atualiza a chance de exploracao
+            chanceExploracaoAtual *= 0.999
+            
     def episode(self, estado, acao, max_steps, chanceExploracao=0):
         step_count = 0
         self.agent.lembrancas = []
