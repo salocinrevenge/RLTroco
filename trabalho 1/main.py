@@ -46,6 +46,6 @@ if __name__ == '__main__':
     learning_strategy.train(num_episodes, exploration_chance=exploration_chance)
     print("Done")
 
-    if not args.no_display:
-        renderer = Renderer(environment, environment.map, "Ambiente")
-        renderer.addConteudo(agent.policy)
+    # if not args.no_display:
+    #     renderer = Renderer(environment, environment.map, "Ambiente")
+    #     renderer.addConteudo(agent.policy)
