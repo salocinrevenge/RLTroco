@@ -33,7 +33,7 @@ if __name__ == '__main__':
     elif learning_strategy in ["sarsa" , "s"]:
         learning_strategy = SARSA(0.5)
     elif learning_strategy in ["qlearning","q-learning","q"]:
-        raise NotImplementedError("Q-Learning not implemented")
+        learning_strategy = QLearning()
     elif learning_strategy in ["linear","lfa","l"]:
         raise NotImplementedError("Linear Function Approximation not implemented")
     else:
@@ -43,9 +43,9 @@ if __name__ == '__main__':
     agent = environment.getAgent()
     learning_strategy.setup(environment, agent)
 
-    learning_strategy.train(num_episodes, chanceExploracao=exploration_chance)
+    learning_strategy.train(num_episodes, exploration_chance=exploration_chance)
     print("Done")
 
     if not args.no_display:
-        renderer = Renderer(environment, environment.mapa, "Ambiente")
+        renderer = Renderer(environment, environment.map, "Ambiente")
         renderer.addConteudo(agent.policy)

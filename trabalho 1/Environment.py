@@ -3,18 +3,18 @@ from Renderer import Renderer
 import time
 import random
 class Environment:
-    simbolosPadrao = {"agent": '@', "wall": '#', "path": '.', "goal":'$'}
+    default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$'}
     def __init__(self, path, stochastic, display=True) -> None:
         self.display = display
-        self.mapaOriginal = self.carregarMapa(path)
-        self.mapa = self.copiarMapa(self.mapaOriginal)
-        self.tempoEspera = 0
+        self.original_map = self.load_map(path)
+        self.map = self.copy_map(self.original_map)
+        self.wait_time = 0
         self.stochastic = stochastic
 
         if self.display:
-            self.render = Renderer(self, self.mapa, "Ambiente")
+            self.render = Renderer(self, self.map, "Ambiente")
 
-    def copiarMapa(self, mapa):
+    def copy_map(self, mapa):
         mapaCopia = []
         for linha in mapa:
             mapaCopia.append([])
@@ -26,10 +26,10 @@ class Environment:
         return self.agent
 
     def in_terminal_state(self):
-        return self.mapaOriginal[self.agent.y][self.agent.x] == self.simbolosPadrao["goal"]
+        return self.original_map[self.agent.y][self.agent.x] == self.default_symbols["goal"]
 
 
-    def carregarMapa(self, path):
+    def load_map(self, path):
         """
         Dado o caminho path, le um arquivo txt e retorna uma matriz
         O txt consiste de uma linha contendo o numero n (número de
@@ -37,49 +37,49 @@ class Environment:
         seguido de m linhas explicando o que sao os caracteres no 
         arquivo e por fim n linhas contendo o mapa que sao caracteres
         """
-        mapa = []
-        self.simbolos = dict()
-        self.reforcos = {"agent": 0, "wall": 0, "path": 0, "goal":0}
-        with open(path, 'r') as arquivo:
-            m, n = map(int, arquivo.readline().split())
+        grid = []
+        self.symbols = dict()
+        self.rewards = {"agent": 0, "wall": 0, "path": 0, "goal":0}
+        with open(path, 'r') as file:
+            m, n = map(int, file.readline().split())
             for _ in range(m):
-                linha = arquivo.readline().split()
-                self.simbolos[linha[0]] = linha[1]
-                self.reforcos[linha[1]] = int(linha[2])
+                line = file.readline().split()
+                self.symbols[line[0]] = line[1]
+                self.rewards[line[1]] = int(line[2])
             for i in range(n):
-                linha = arquivo.readline()
-                mapa.append([])
-                for j in range(len(linha)):
-                    char = linha[j]
+                line = file.readline()
+                grid.append([])
+                for j in range(len(line)):
+                    char = line[j]
                     if char == '\n':
                         continue
-                    if self.simbolos[char] == 'agent':
+                    if self.symbols[char] == 'agent':
                         self.agent = Agent(x=j, y=i, environment=self, display=self.display)
-                        char = self.simbolosPadrao["path"]
-                    mapa[-1].append(self.simbolosPadrao[self.simbolos[char]])
-        return mapa
+                        char = self.default_symbols["path"]
+                    grid[-1].append(self.default_symbols[self.symbols[char]])
+        return grid
     
-    def mover(self, agent, acao):
+    def move(self, agent, acao):
         """
         Dada uma acao, move o agente no mapa
         a acao pode ser "up", "down", "left" ou "right"
         """
         if random.random() < self.stochastic:
-            acao = random.choice(agent.acoes)
-        time.sleep(self.tempoEspera)
-        direcao = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
-        posicaofinal = (agent.y+direcao[acao][0], agent.x+direcao[acao][1])
-        if self.mapa[posicaofinal[0]][posicaofinal[1]] != self.simbolosPadrao["wall"]:
+            acao = random.choice(agent.actions)
+        time.sleep(self.wait_time)
+        direction = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
+        posicaofinal = (agent.y+direction[acao][0], agent.x+direction[acao][1])
+        if self.map[posicaofinal[0]][posicaofinal[1]] != self.default_symbols["wall"]:
             # seta a posicao atual como caminho
-            self.mapa[agent.y][agent.x] = self.mapaOriginal[agent.y][agent.x]
+            self.map[agent.y][agent.x] = self.original_map[agent.y][agent.x]
             
             # seta a posicao final como o agente
-            self.mapa[posicaofinal[0]][posicaofinal[1]] = self.simbolosPadrao["agent"]
+            self.map[posicaofinal[0]][posicaofinal[1]] = self.default_symbols["agent"]
             
             # atualiza a posicao do agente
             agent.setPos(posicaofinal)
         # retorna o reforco da posicao final 
-        return self.reforcos[self.simbolos[self.mapaOriginal[agent.y][agent.x]]]
+        return self.rewards[self.symbols[self.original_map[agent.y][agent.x]]]
 
     def util(self, pos, acao):
         """
@@ -87,12 +87,12 @@ class Environment:
         """
         direcao = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
         posicaofinal = (pos[0]+direcao[acao][0], pos[1]+direcao[acao][1])
-        return self.simbolos[self.mapa[posicaofinal[0]][posicaofinal[1]]] != "wall"
+        return self.symbols[self.map[posicaofinal[0]][posicaofinal[1]]] != "wall"
 
     def get_size(self):
-        return len(self.mapa), len(self.mapa[0])
+        return len(self.map), len(self.map[0])
     
     def setAgentPos(self, i, j):
-        self.mapa[self.agent.y][self.agent.x] = self.mapaOriginal[self.agent.y][self.agent.x]
+        self.map[self.agent.y][self.agent.x] = self.original_map[self.agent.y][self.agent.x]
         self.agent.setPos((i, j))
-        self.mapa[i][j] = self.simbolosPadrao["agent"]
+        self.map[i][j] = self.default_symbols["agent"]

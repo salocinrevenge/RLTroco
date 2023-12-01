@@ -1,7 +1,7 @@
 import random
 
 class Agent():
-    acoes = ['up', 'down', 'left', 'right']
+    actions = ['up', 'down', 'left', 'right']
     def __init__(self, x, y, environment, gamma = 0.9, display=True):
         self.environment = environment
         self.x = x
@@ -9,42 +9,58 @@ class Agent():
         self.gamma = gamma
         self.display = display
 
-    def iniciaQ(self, formato, inicializacao = float("-inf")):
+    def action_idx(self, action: str):
+        return self.actions.index(action)
+
+    def startQ(self, shape, start_value = float("-inf")):
         """
         livroQ é uma lista de listas de dicionarios,
         ele armazena 
         
         """
         self.livro_Q: list[list[dict]] = []
-        for i in range(formato[0]):
+        for i in range(shape[0]):
             self.livro_Q.append([])
-            for _ in range(formato[1]):
+            for _ in range(shape[1]):
                 self.livro_Q[i].append(dict())
-                for acao in self.acoes:
-                    self.livro_Q[i][-1][acao] = inicializacao
+                for acao in self.actions:
+                    self.livro_Q[i][-1][acao] = start_value
+
+    def startV(self, shape):
+        """
+        livroV é uma lista de listas de dicionarios,
+        ele armazena 
+        
+        """ 
+        self.book_V: list[list] = []
+        for i in range(shape[0]):
+            self.book_V.append([])
+            for _ in range(shape[1]):
+                
+                self.book_V[i].append(float("-inf"))
     
-    def iniciaPolicy(self, formato, politicaAleatoria):
+    def startPolicy(self, shape, randomPolicy):
         """
         A policy é uma matriz de caracteres que guarda a acao principal
         a ser tomada ate o momento
         
         """
         self.policy: list[list[str]] = []
-        for i in range(formato[0]):
+        for i in range(shape[0]):
             self.policy.append([])
-            for j in range(formato[1]):
-                if self.environment.simbolos[self.environment.mapaOriginal[i][j]] == "wall":
+            for j in range(shape[1]):
+                if self.environment.symbols[self.environment.original_map[i][j]] == "wall":
                     self.policy[i].append("wall")
                     continue
-                if politicaAleatoria:
-                    self.policy[i].append(random.choice(self.acoes))
+                if randomPolicy:
+                    self.policy[i].append(random.choice(self.actions))
                 else:
-                    self.policy[i].append(self.acoes[0])
+                    self.policy[i].append(self.actions[0])
         
         if self.display:
             self.render = self.environment.render.addConteudo(self.policy)
 
-    def iniciaRetorno(self, formato):
+    def startReturns(self, shape):
         """
         returns é uma colecao de pares estado acao guardando um
         dicionario para armazenar o valor maximo de reforcos obtidos,
@@ -52,11 +68,11 @@ class Agent():
         episodio em que o par estado acao foi visitado
         """
         self.returns: list[list[dict]] = []
-        for i in range(formato[0]):
+        for i in range(shape[0]):
             self.returns.append([])
-            for j in range(formato[1]):
+            for j in range(shape[1]):
                 self.returns[i].append(dict())
-                for acao in self.acoes:
+                for acao in self.actions:
                     self.returns[i][j][acao] = {"value": 0, "count": 0, "lastEpisode": 0}
 
     def setEnvironment(self, environment):
@@ -66,8 +82,8 @@ class Agent():
         self.x = position[1]
         self.y = position[0]
 
-    def mover(self, acao):
-        return self.environment.mover(self, acao)
+    def move(self, action):
+        return self.environment.move(self, action)
     
     def get_action(self):
         return self.policy[self.y][self.x]
