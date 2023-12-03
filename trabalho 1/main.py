@@ -4,6 +4,8 @@ from Environment import Environment
 from LearningStrategies import *
 from Renderer import Renderer
 from argparse import ArgumentParser
+import numpy as np
+import random
 
 def parse_args():
     parser = ArgumentParser()
@@ -16,10 +18,9 @@ def parse_args():
 
     return parser.parse_args()
 
-
-
 if __name__ == '__main__':
-
+    np.random.seed(42)
+    random.seed(42)
     args = parse_args()
 
     room_path = args.room
@@ -46,6 +47,6 @@ if __name__ == '__main__':
     learning_strategy.train(num_episodes, exploration_chance=exploration_chance)
     print("Done")
 
-    # if not args.no_display:
-    #     renderer = Renderer(environment, environment.map, "Ambiente")
-    #     renderer.addConteudo(agent.policy)
+    if not args.no_display:
+        renderer = Renderer(environment, environment.map, "Ambiente")
+        renderer.addConteudo(agent.policy)

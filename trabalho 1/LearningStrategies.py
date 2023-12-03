@@ -3,6 +3,7 @@ from Environment import Environment
 from Agent import Agent
 import numpy as np
 import time
+import matplotlib.pyplot as plt
 
 class LearningStrategy():
     def train(self, episodes):
@@ -11,6 +12,30 @@ class LearningStrategy():
     def setup(self, environment, agent):
         self.environment: Environment = environment
         self.agent: Agent = agent
+        
+    def show_loss(self, rewards, window_size=None):
+        # se não for numpy array, transformar em um
+        if not isinstance(rewards, np.ndarray):
+            rewards = np.asarray(rewards)
+
+        if window_size is not None:
+            # calcular a média móvel
+            rewards = np.convolve(rewards, np.ones(window_size), 'valid') / window_size
+
+        # Criar o gráfico
+        plt.plot(rewards)
+        # Adicionar um título
+        plt.title("Gráfico de recompensas")
+
+        # Adicionar um eixo x
+        plt.xlabel("Episódio")
+
+        # Adicionar um eixo y
+        plt.ylabel("Recompensa")
+
+        # Exibir o gráfico
+        plt.show()
+
 
 class MonteCarlo(LearningStrategy):
     def __init__(self) -> None:
@@ -32,13 +57,14 @@ class MonteCarlo(LearningStrategy):
     
     def train(self, episodes, randomPolicy = True, exploration_chance = 0):
         # Initialize
+        begin_training_time = time.time()
         shape = self.environment.get_size()
         self.agent.startPolicy(shape, randomPolicy)
         self.agent.startReturns(shape)
         self.Q = np.zeros((shape[0],shape[1], len(self.agent.actions)))
         self.agent.startV(shape)
         current_exploration_chance = exploration_chance
-
+        rewards = []
         for ep in range(episodes):
             start_time = time.time()
             if ep % (episodes//10) == 0:
@@ -79,21 +105,28 @@ class MonteCarlo(LearningStrategy):
                     self.agent.book_V[memory[0][0]][memory[0][1]] = media
                     self.agent.policy[memory[0][0]][memory[0][1]] = max(self.agent.actions, key = lambda action: self.get_Q(memory[0][0],memory[0][1],self.agent.action_idx(action)))    # recebe a action que maximiza o valor de Q
             # atualiza a chance de exploracao
+            rewards.append(np.asarray(self.episode_R[ep]).sum())
             current_exploration_chance *= 0.999
             end_time = time.time()
             time_difference_seconds = end_time - start_time
             self.time.append(time_difference_seconds)
+
+        end_training_time = time.time()
+        print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
+        self.show_loss(rewards, window_size=(len(rewards)//10))
+
             
     def episode(self, state, action, max_steps, exploration_chance=0):
         step_count = 0
         self.agent.recalls = []
-        self.environment.setAgentPos(state[0], state[1])
-        episode_R = []
+        reward = self.environment.setAgentPos(state[0], state[1])
+        episode_R = [reward]
 
         while (not self.environment.in_terminal_state()) and (step_count < max_steps):  # enquanto nao estiver em um estado terminal
             step_count +=1  # incrementa o numero de passos
             last_pos = (self.agent.y, self.agent.x)
             reward = self.environment.move(self.agent,action) # realiza a acao e recebe a recompensa
+            episode_R.append(reward)
             self.agent.recalls.append((last_pos, action, reward)) # guarda o passo
             if random.random() < exploration_chance:
                 for _ in range(len(self.agent.actions)*2):    # limite maximo de tentativas

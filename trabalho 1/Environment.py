@@ -28,7 +28,6 @@ class Environment:
     def in_terminal_state(self):
         return self.original_map[self.agent.y][self.agent.x] == self.default_symbols["goal"]
 
-
     def load_map(self, path):
         """
         Dado o caminho path, le um arquivo txt e retorna uma matriz
@@ -96,3 +95,4 @@ class Environment:
         self.map[self.agent.y][self.agent.x] = self.original_map[self.agent.y][self.agent.x]
         self.agent.setPos((i, j))
         self.map[i][j] = self.default_symbols["agent"]
+        return self.rewards[self.symbols[self.original_map[self.agent.y][self.agent.x]]]
