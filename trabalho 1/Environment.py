@@ -3,7 +3,7 @@ from Renderer import Renderer
 import time
 import random
 class Environment:
-    default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$'}
+    default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$', "lava":'L', "acid":'A'}
     def __init__(self, path, stochastic, display=True) -> None:
         self.display = display
         self.original_map = self.load_map(path)
@@ -26,7 +26,8 @@ class Environment:
         return self.agent
 
     def in_terminal_state(self):
-        return self.original_map[self.agent.y][self.agent.x] == self.default_symbols["goal"]
+        return self.original_map[self.agent.y][self.agent.x] in (self.default_symbols["goal"], self.default_symbols["lava"])
+    
 
     def load_map(self, path):
         """

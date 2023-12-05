@@ -183,12 +183,13 @@ class SARSA(LearningStrategy):
             return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action)))
                 
     def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.001):
+        begin_training_time = time.time()
         shape = self.environment.get_size()
         ec = exploration_chance
         num_states = shape[0]*shape[1]
         linear_decay = exploration_chance/episodes
         self.Q = np.zeros((shape[0],shape[1], len(self.agent.actions)))
-
+        rewards = []
         E = dict()
         for ep in range(episodes):
             start_time = time.time()
@@ -240,6 +241,7 @@ class SARSA(LearningStrategy):
             self.episode_R.append(episode_R)
             self.episode_length.append(step_count)
             ec-=linear_decay
+            rewards.append(np.asarray(self.episode_R[ep]).sum())
             end_time = time.time()
             time_difference_seconds = end_time - start_time
             self.time.append(time_difference_seconds)
@@ -251,6 +253,10 @@ class SARSA(LearningStrategy):
                 if(self.environment.original_map[i][j] == '#'): self.agent.policy[i][j] = "wall"
                 else: 
                     self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action)))
+        
+        end_training_time = time.time()
+        print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
+        self.show_loss(rewards, window_size=(len(rewards)//10))
 
     def path_from(self, starting_point):
         shape = self.environment.get_size()

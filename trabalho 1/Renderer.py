@@ -47,16 +47,20 @@ class Renderer():
         self.sprites["up"] = pygame.transform.scale(pygame.image.load("imgs/up.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["left"] = pygame.transform.scale(pygame.image.load("imgs/left.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["down"] = pygame.transform.scale(pygame.image.load("imgs/down.png"), (int(self.escala[0]), int(self.escala[1])))
+        self.sprites["acid"] = pygame.transform.scale(pygame.image.load("imgs/acid.png"), (int(self.escala[0]), int(self.escala[1])))
+        self.sprites["lava"] = pygame.transform.scale(pygame.image.load("imgs/lava.png"), (int(self.escala[0]), int(self.escala[1])))
 
         self.asciiSprites = dict()
-        self.asciiSprites["path"] = '⬛'
-        self.asciiSprites["wall"] = '🧱'
-        self.asciiSprites["goal"] = '⚽'
-        self.asciiSprites["agent"] = '👾' 
-        self.asciiSprites["right"] = '➡️'
-        self.asciiSprites["up"] = '⬆️'
-        self.asciiSprites["left"] = '⬅️' 
-        self.asciiSprites["down"] = '⬇️'
+        self.asciiSprites["path"]   = '⬛'
+        self.asciiSprites["wall"]   = '🧱'
+        self.asciiSprites["goal"]   = '⚽'
+        self.asciiSprites["agent"]  = '👾' 
+        self.asciiSprites["right"]  = '->' #'➡️'
+        self.asciiSprites["up"]     = '⬆️⬆️'
+        self.asciiSprites["left"]   = '<-' 
+        self.asciiSprites["down"]   = '⬇️⬇️'
+        self.asciiSprites["lava"]   = '🌋'
+        self.asciiSprites["acid"]   = '🦠'
 
     def create_heatmap(data, cmap='viridis', title='Heatmap'):
         """
@@ -125,15 +129,16 @@ class Renderer():
             self.screen.fill((0,0,0))
             
             # desenha o conteudo
-            for i in range(len(self.content)):
-                for j in range(len(self.content[0])):
-                    celula = self.content[i][j]
-                    # se o conteudo de celula estiver no dicionario de sprites
-                    if celula in self.sprites:
-                        objeto = celula
-                    else:
-                        objeto = self.chief.symbols[celula]
-                    self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
+            for k in range(self.iConteudoAtual+1):
+                for i in range(len(self.contents[k])):
+                    for j in range(len(self.contents[k][0])):
+                        celula = self.contents[k][i][j]
+                        # se o conteudo de celula estiver no dicionario de sprites
+                        if celula in self.sprites:
+                            objeto = celula
+                        else:
+                            objeto = self.chief.symbols[celula]
+                        self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
 
             # Atualizar a tela
             pygame.display.update()
