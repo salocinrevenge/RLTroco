@@ -2,10 +2,8 @@ from Agent import Agent
 from Renderer import Renderer
 import time
 import random
-import numpy as np
 class Environment:
     default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$', "lava":'L', "acid":'A'}
-    letra_num = {"agent": 3, "wall": 1, "path": 0, "goal":2, "lava":4, "acid":5, 1:"wall", 0:"path", 2:"goal", 3:"agent", 4:"lava", 5:"acid"}
     def __init__(self, path, stochastic, display=True) -> None:
         self.display = display
         self.original_map = self.load_map(path)
@@ -17,13 +15,18 @@ class Environment:
             self.render = Renderer(self, self.map, "Ambiente")
 
     def copy_map(self, mapa):
-        return np.copy(mapa)
+        mapaCopia = []
+        for linha in mapa:
+            mapaCopia.append([])
+            for celula in linha:
+                mapaCopia[-1].append(celula)
+        return mapaCopia
 
     def getAgent(self) -> Agent:
         return self.agent
 
     def in_terminal_state(self):
-        return self.original_map[self.agent.y][self.agent.x] in (self.letra_num["goal"], self.letra_num["lava"])
+        return self.original_map[self.agent.y][self.agent.x] in (self.default_symbols["goal"], self.default_symbols["lava"])
     
 
     def load_map(self, path):
@@ -53,8 +56,8 @@ class Environment:
                     if self.symbols[char] == 'agent':
                         self.agent = Agent(x=j, y=i, environment=self, display=self.display)
                         char = self.default_symbols["path"]
-                    grid[-1].append(int(self.letra_num[self.symbols[char]]))
-        return np.asarray(grid,dtype=np.int8)
+                    grid[-1].append(self.default_symbols[self.symbols[char]])
+        return grid
     
     def move(self, agent, acao):
         """
@@ -66,17 +69,17 @@ class Environment:
         time.sleep(self.wait_time)
         direction = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
         posicaofinal = (agent.y+direction[acao][0], agent.x+direction[acao][1])
-        if self.map[posicaofinal[0]][posicaofinal[1]] != self.letra_num["wall"]:
+        if self.map[posicaofinal[0]][posicaofinal[1]] != self.default_symbols["wall"]:
             # seta a posicao atual como caminho
             self.map[agent.y][agent.x] = self.original_map[agent.y][agent.x]
             
             # seta a posicao final como o agente
-            self.map[posicaofinal[0]][posicaofinal[1]] = self.letra_num["agent"]
+            self.map[posicaofinal[0]][posicaofinal[1]] = self.default_symbols["agent"]
             
             # atualiza a posicao do agente
             agent.setPos(posicaofinal)
         # retorna o reforco da posicao final 
-        return self.rewards[self.letra_num[self.original_map[agent.y][agent.x]]]
+        return self.rewards[self.symbols[self.original_map[agent.y][agent.x]]]
 
     def util(self, pos, acao):
         """
@@ -92,5 +95,5 @@ class Environment:
     def setAgentPos(self, i, j):
         self.map[self.agent.y][self.agent.x] = self.original_map[self.agent.y][self.agent.x]
         self.agent.setPos((i, j))
-        self.map[i][j] = self.letra_num["agent"]
-        return self.rewards[self.letra_num[self.original_map[self.agent.y][self.agent.x]]]
+        self.map[i][j] = self.default_symbols["agent"]
+        return self.rewards[self.symbols[self.original_map[self.agent.y][self.agent.x]]]
