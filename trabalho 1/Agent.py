@@ -49,7 +49,7 @@ class Agent():
         for i in range(shape[0]):
             self.policy.append([])
             for j in range(shape[1]):
-                if self.environment.symbols[self.environment.original_map[i][j]] == "wall":
+                if self.environment.letra_num[self.environment.original_map[i][j]] == "wall":
                     self.policy[i].append("wall")
                     continue
                 if randomPolicy:

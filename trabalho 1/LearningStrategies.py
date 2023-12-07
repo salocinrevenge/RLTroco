@@ -209,7 +209,7 @@ class SARSA(LearningStrategy):
             # escolhe posicao aleatoria valida para o agente
             while True:
                 S = (random.randrange(0, shape[0]), random.randrange(0, shape[1]))
-                if self.environment.original_map[S[0]][S[1]] in {self.environment.default_symbols["path"], self.environment.default_symbols["goal"]}:
+                if self.environment.original_map[S[0]][S[1]] in {self.environment.letra_num["path"], self.environment.letra_num["goal"]}:
                     break
             self.environment.setAgentPos(S[0], S[1])
 
@@ -327,7 +327,7 @@ class QLearning(LearningStrategy):
             # escolhe posicao aleatoria valida para o agente
             while True:
                 S = (random.randrange(0, shape[0]), random.randrange(0, shape[1]))
-                if self.environment.original_map[S[0]][S[1]] in {self.environment.default_symbols["path"], self.environment.default_symbols["goal"]}:
+                if self.environment.original_map[S[0]][S[1]] in {self.environment.letra_num["path"], self.environment.letra_num["goal"]}:
                     break
             self.environment.setAgentPos(S[0], S[1])
 

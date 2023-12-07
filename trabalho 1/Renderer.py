@@ -137,7 +137,7 @@ class Renderer():
                         if celula in self.sprites:
                             objeto = celula
                         else:
-                            objeto = self.chief.symbols[celula]
+                            objeto = self.chief.letra_num[celula]
                         self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
 
             # Atualizar a tela
@@ -154,7 +154,7 @@ class Renderer():
                 if cell in self.asciiSprites:
                     obj = cell
                 else:
-                    obj = self.chief.symbols[cell]
+                    obj = self.chief.letra_num[cell]
                 print(self.asciiSprites.get(obj,'❌'),end='')
             print('')
         
