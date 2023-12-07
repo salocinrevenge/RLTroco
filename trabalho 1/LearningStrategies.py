@@ -52,10 +52,10 @@ class MonteCarlo(LearningStrategy):
             return self.Q[x,y,action]
         
         terms = np.array([x,y,action])
-        return np.dot(self.W, terms).astype(int)
+        return np.dot(self.W, terms).astype(float)
 
     
-    def train(self, episodes, randomPolicy = True, exploration_chance = 0):
+    def train(self, episodes, randomPolicy = True, exploration_chance = 0, appx = True, alpha = 0.001):
         # Initialize
         begin_training_time = time.time()
         shape = self.environment.get_size()
@@ -101,9 +101,16 @@ class MonteCarlo(LearningStrategy):
                     self.agent.returns[memory[0][0]][memory[0][1]][memory[1]]["value"] += g
                     self.agent.returns[memory[0][0]][memory[0][1]][memory[1]]["count"] += 1
                     media = self.agent.returns[memory[0][0]][memory[0][1]][memory[1]]["value"]/self.agent.returns[memory[0][0]][memory[0][1]][memory[1]]["count"]
-                    self.Q[memory[0][0],memory[0][1],self.agent.action_idx(memory[1])] = media
+
+                    if(not appx):
+                        self.Q[memory[0][0],memory[0][1],self.agent.action_idx(memory[1])] = media
+                    else:
+                        deltaW = alpha * (g - self.get_Q(memory[0][0],memory[0][1],self.agent.action_idx(memory[1]),appx)) * np.array([memory[0][0],memory[0][1],self.agent.action_idx(memory[1])])
+                        self.W += deltaW
+
+
                     self.agent.book_V[memory[0][0]][memory[0][1]] = media
-                    self.agent.policy[memory[0][0]][memory[0][1]] = max(self.agent.actions, key = lambda action: self.get_Q(memory[0][0],memory[0][1],self.agent.action_idx(action)))    # recebe a action que maximiza o valor de Q
+                    self.agent.policy[memory[0][0]][memory[0][1]] = max(self.agent.actions, key = lambda action: self.get_Q(memory[0][0],memory[0][1],self.agent.action_idx(action),appx))    # recebe a action que maximiza o valor de Q
             # atualiza a chance de exploracao
             rewards.append(np.asarray(self.episode_R[ep]).sum())
             current_exploration_chance *= 0.999
@@ -170,19 +177,19 @@ class SARSA(LearningStrategy):
             return self.Q[x,y,action]
         
         terms = np.array([x,y,action])
-        return np.dot(self.W, terms).astype(int)
+        return np.dot(self.W, terms).astype(float)
         
 
-    def get_greedy_action(self,state):
-        return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action)))
+    def get_greedy_action(self,state, appx = False):
+        return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action),appx))
     
-    def get_epsilon_greedy(self, exploration_chance, state):
+    def get_epsilon_greedy(self, exploration_chance, state, appx = False):
         if random.random() < exploration_chance:
             return random.choice(self.agent.actions)
         else:
-            return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action)))
+            return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action), appx))
                 
-    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.001):
+    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.001, appx = True):
         begin_training_time = time.time()
         shape = self.environment.get_size()
         ec = exploration_chance
@@ -228,12 +235,18 @@ class SARSA(LearningStrategy):
                 pair = (S, A)
                 E[pair] = E[pair] + 1 if pair in E.keys() else 1
 
-                delta = R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx) - self.get_Q(S[0], S[1], A_idx)
-
-                for (s, a) in E.keys():
-                    a_idx = self.agent.action_idx(a)
-                    self.Q[s[0],s[1], a_idx] += alpha * delta * E[(s,a)]
-                    E[(s,a)] *= self.agent.gamma * self.lam
+                delta = R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx, appx) - self.get_Q(S[0], S[1], A_idx, appx)
+                if (not appx):
+                    for (s, a) in E.keys():
+                        a_idx = self.agent.action_idx(a)
+                        self.Q[s[0],s[1], a_idx] += alpha * delta * E[(s,a)]
+                        E[(s,a)] *= self.agent.gamma * self.lam
+                else: 
+                    for (s, a) in E.keys():
+                        a_idx = self.agent.action_idx(a)
+                        deltaW = alpha * delta * E[(s,a)] * np.array([s[0],s[1],a_idx])
+                        self.W += deltaW
+                        E[(s,a)] *= self.agent.gamma * self.lam
                 
                 S = S_prime
                 A = A_prime
@@ -252,7 +265,7 @@ class SARSA(LearningStrategy):
             for j in range(shape[1]):
                 if(self.environment.original_map[i][j] == '#'): self.agent.policy[i][j] = "wall"
                 else: 
-                    self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action)))
+                    self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action), appx))
         
         end_training_time = time.time()
         print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
@@ -274,27 +287,8 @@ class SARSA(LearningStrategy):
         return tuples
                 
 
-    
 
-class LinearFunctionApproximation(LearningStrategy):
-    """
-    O metodo se baseia em 10 sensores, 9 deles em volta do agente e um sensor de distancia até o objetivo (cheiro)
-    O agente executa eles e segue a política dada pela saída da rede
-    
-    
-    
-    """
-    def __init__(self) -> None:
-        super().__init__()
-        # preenche um vetor de 10 pesos aleatórios variando de -1 a 1
-        self.W = np.random.rand(10) * 2 - 1
-
-    def forward(self):
-        # retorna a aproximação linear para o estado e a ação
-        inputs = self.environment.get_sensors(self.agent, 10, ("radius",1,"smell"))
-        return np.dot(self.W, inputs)
         
-
 class QLearning(LearningStrategy):
     def __init__(self):
         super().__init__()
@@ -307,20 +301,20 @@ class QLearning(LearningStrategy):
     def get_Q(self, x, y, action, linear_approximation = False):
         if not linear_approximation:
             return self.Q[x,y,action]
-        
+         
         terms = np.array([x,y,action])
-        return np.dot(self.W, terms).astype(int)
+        return np.dot(self.W, terms).astype(float)
 
-    def get_greedy_action(self,state):
-        return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action)))
+    def get_greedy_action(self,state,appx = False):
+        return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action),appx))
     
-    def get_epsilon_greedy(self, exploration_chance, state):
+    def get_epsilon_greedy(self, exploration_chance, state, appx = False):
         if random.random() < exploration_chance:
             return random.choice(self.agent.actions)
         else:
-            return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action)))
+            return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action),appx))
                 
-    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.003):
+    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.003, appx = True):
         shape = self.environment.get_size()
         ec = exploration_chance
         num_states = shape[0]*shape[1]
@@ -359,10 +353,13 @@ class QLearning(LearningStrategy):
 
                 S_prime = (self.agent.y, self.agent.x)
                 A_prime = self.get_greedy_action(S_prime)
-                A_prime_idx = self.agent.action_idx(A)
+                A_prime_idx = self.agent.action_idx(A_prime)
 
-
-                self.Q[S[0], S[1], A_idx] += alpha*(R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx) - self.get_Q(S[0], S[1], A_idx))
+                if(not appx):
+                    self.Q[S[0], S[1], A_idx] += alpha*(R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx) - self.get_Q(S[0], S[1], A_idx))
+                else:
+                    deltaW = alpha * (R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx, appx) - self.get_Q(S[0], S[1], A_idx, appx)) * np.array([S[0],S[1],A_idx])
+                    self.W += deltaW
 
                 
                 S = S_prime
@@ -382,7 +379,7 @@ class QLearning(LearningStrategy):
             for j in range(shape[1]):
                 if(self.environment.original_map[i][j] == '#'): self.agent.policy[i][j] = "wall"
                 else: 
-                    self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action)))
+                    self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action),appx))
                     self.agent.book_V[i][j] = max(self.Q[i,j,:])
 
     def path_from(self, starting_point):

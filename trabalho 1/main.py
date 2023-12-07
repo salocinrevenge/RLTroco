@@ -19,8 +19,8 @@ def parse_args():
     return parser.parse_args()
 
 if __name__ == '__main__':
-    np.random.seed(42)
-    random.seed(42)
+    #np.random.seed(42)
+    #random.seed(42)
     args = parse_args()
 
     room_path = args.room
