@@ -2,6 +2,8 @@ from Agent import Agent
 from Renderer import Renderer
 import time
 import random
+import numpy as np
+
 class Environment:
     default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$', "lava":'L', "acid":'A'}
     def __init__(self, path, stochastic, display=True) -> None:
@@ -10,6 +12,7 @@ class Environment:
         self.map = self.copy_map(self.original_map)
         self.wait_time = 0
         self.stochastic = stochastic
+        self.dists_goal = None
 
         if self.display:
             self.render = Renderer(self, self.map, "Ambiente")
@@ -28,6 +31,62 @@ class Environment:
     def in_terminal_state(self):
         return self.original_map[self.agent.y][self.agent.x] in (self.default_symbols["goal"], self.default_symbols["lava"])
     
+    def get_dist_goals(self):
+        self.dists_goal = np.full((len(self.map), len(self.map[0])), np.inf)
+        for i in range(len(self.map)):
+            for j in range(len(self.map[0])):
+                if self.original_map[i][j] == self.default_symbols["goal"]:
+                    self.dists_goal[i][j] = 0
+        for i in range(1,len(self.map)-1):
+            for j in range(1,len(self.map[0])-1):
+                self.dists_goal[i][j] = min(self.dists_goal[i][j], self.dists_goal[i-1][j]+1, self.dists_goal[i+1][j]+1, self.dists_goal[i][j-1]+1, self.dists_goal[i][j+1]+1)
+
+    def get_dist_closest_goal(self, agent):
+        if self.dists_goal is None:
+            self.dists_goal = self.get_dist_goals()
+        return self.dists_goal[agent.y][agent.x]
+
+    
+    def get_index_object(self, object):
+        if object == self.default_symbols["agent"]:
+            return 0
+        elif object == self.default_symbols["wall"]:
+            return 1
+        elif object == self.default_symbols["path"]:
+            return 2
+        elif object == self.default_symbols["goal"]:
+            return 3
+        elif object == self.default_symbols["lava"]:
+            return 4
+        elif object == self.default_symbols["acid"]:
+            return 5
+        else:
+            return 6
+
+    def get_sensors(self, agent, num_sensors, sensors_type):
+        sensors = np.zeros(num_sensors)
+        s_i = 0
+        i = 0
+        while i < len(sensors_type):
+            match sensors_type[i]:
+                case "radius":
+                    i += 1
+                    radius = sensors_type[i]
+                    for j in range(-radius, radius+1):
+                        for k in range(-radius, radius+1):
+                            object = self.get_index_object(self.original_map[agent.y+j][agent.x+k])
+                            sensors[s_i] = object
+                            s_i += 1
+                    i += 1
+                case "smell":
+                    distance = self.get_dist_closest_goal(agent)
+                    sensors[s_i] = distance
+                    s_i += 1
+                    i += 1
+                
+                case _:
+                    i+=1
+
 
     def load_map(self, path):
         """

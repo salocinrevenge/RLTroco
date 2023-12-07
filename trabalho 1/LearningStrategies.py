@@ -277,7 +277,23 @@ class SARSA(LearningStrategy):
     
 
 class LinearFunctionApproximation(LearningStrategy):
-    ...
+    """
+    O metodo se baseia em 10 sensores, 9 deles em volta do agente e um sensor de distancia até o objetivo (cheiro)
+    O agente executa eles e segue a política dada pela saída da rede
+    
+    
+    
+    """
+    def __init__(self) -> None:
+        super().__init__()
+        # preenche um vetor de 10 pesos aleatórios variando de -1 a 1
+        self.W = np.random.rand(10) * 2 - 1
+
+    def forward(self):
+        # retorna a aproximação linear para o estado e a ação
+        inputs = self.environment.get_sensors(self.agent, 10, ("radius",1,"smell"))
+        return np.dot(self.W, inputs)
+        
 
 class QLearning(LearningStrategy):
     def __init__(self):
