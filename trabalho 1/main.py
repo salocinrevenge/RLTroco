@@ -9,10 +9,10 @@ import random
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument('--room', '-r', type=str, required=True)
-    parser.add_argument('--episodes', '-e', type=int, default=100_000)
+    parser.add_argument('--room', '-r', type=str, default="salas/sala3.txt")
+    parser.add_argument('--episodes', '-e', type=int, default=50_000)
     parser.add_argument('--exploration-chance', '-c', type=float, default=0.3, dest='exploration_chance')
-    parser.add_argument('--learning-strategy', '-l', type=str, dest='learning_strategy', required=True)
+    parser.add_argument('--learning-strategy', '-l', type=str, dest='learning_strategy', default="monte")
     parser.add_argument('--no-display', '-d', action='store_true', dest='no_display')
     parser.add_argument('--stochastic', '-s', type=float, dest='stochastic', default=0.0)
 
