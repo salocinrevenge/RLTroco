@@ -6,12 +6,30 @@ import time
 import matplotlib.pyplot as plt
 
 class LearningStrategy():
+
+    def __init__(self) -> None:
+        self.feature_lenght = 15
+        self.W = np.random.rand(self.feature_lenght)*2-1
+
     def train(self, episodes):
         pass
+
+    def get_Q(self, x, y, action, linear_approximation = False):
+        if not linear_approximation:
+            return self.Q[x,y,action]
+        
+        terms = self.data_to_features(x,y,action)
+        return np.dot(self.W, terms)
 
     def setup(self, environment, agent):
         self.environment: Environment = environment
         self.agent: Agent = agent
+    
+    def data_to_features(self, x,y,action):
+        x= x/self.environment.get_size()[1]
+        y= y/self.environment.get_size()[0]
+        action = action/len(self.agent.actions)
+        return np.array([x,y,action, x*y, y*action, x*action, x*x, y*y, action*action, np.exp(x), np.exp(y), np.exp(action), np.sin(x), np.sin(y), np.sin(action)])
         
     def show_loss(self, rewards, window_size=None):
         # se não for numpy array, transformar em um
@@ -43,84 +61,9 @@ class MonteCarlo(LearningStrategy):
         self.episode_R = []
         self.episode_length = []
         self.Q = None
-        self.W = np.random.rand(5)*2-1
         self.time = []
-
-
-    def get_Q(self, x, y, action, linear_approximation=False):
-        if not linear_approximation:
-            return self.Q[x,y,action]
-        
-        terms = self.data_to_features((x,y,action))
-        # print(f"terms: {terms}")
-        # print(f"W: {self.W}")
-        # time.sleep(2)
-        return np.dot(self.W, terms)
-
-    def data_to_features(self, data):
-        x,y,action = data
-        # x = x/self.environment.get_size()[1]
-        # y = y/self.environment.get_size()[0]
-        # action = action/len(self.agent.actions)
-
-        match action: # ['up', 'down', 'left', 'right']
-            case 0: y -= 1
-            case 1: y += 1
-            case 2: x -= 1
-            case 3: x += 1
-        
-        y = min(max(y, 0), self.environment.get_size()[0]-1)
-        x = min(max(x, 0), self.environment.get_size()[1]-1)
-
-        features = np.zeros(5)
-
-        # distancia ao objetivo
-        features[0] = self.environment.get_dist_closest_goal(y,x)/(len(self.environment.original_map) + len(self.environment.original_map[0]))
-
-
-        # numero de casas livres em cima
-        for i in range(-1, 1):
-            try: casa = self.environment.map[y-1][x+i]
-            except: continue
-            
-            if casa != self.environment.default_symbols["path"] and casa != self.environment.default_symbols["goal"]:
-                features[1] += 1
-        features[1] /= 3
-
-        # numero de casas libres em baixo
-        for i in range(-1, 1):
-            try: casa = self.environment.map[y+1][x+i]
-            except: continue
-            
-            if casa != self.environment.default_symbols["path"] and casa != self.environment.default_symbols["goal"]:
-                features[2] += 1
-        features[2] /= 3
-
-
-        # numero de casas livres a esquerda
-        for i in range(-1, 1):
-            try: casa = self.environment.map[y+i][x-1]
-            except: continue
-            
-            if casa != self.environment.default_symbols["path"] and casa != self.environment.default_symbols["goal"]:
-                features[3] += 1
-        features[3] /= 3
-
-        # numero de casas livres a direita
-        for i in range(-1, 1):
-            try: casa = self.environment.map[y+i][x+1]
-            except: continue
-            
-            if casa != self.environment.default_symbols["path"] and casa != self.environment.default_symbols["goal"]:
-                features[4] += 1
-        features[4] /= 3
-
-        return features
-        
-        # return np.array([x,y,action, x*y, y*action, x*action, x*x, y*y, action*action, np.exp(x), np.exp(y), np.exp(action), np.sin(x), np.sin(y), np.sin(action)])
-        # return np.array(data)
     
-    def train(self, episodes, randomPolicy = True, exploration_chance = 0, appx = True, alpha = 0.001):
+    def train(self, episodes, randomPolicy = True, exploration_chance = 0, appx = True, alpha = 0.003):
         # Initialize
         begin_training_time = time.time()
         shape = self.environment.get_size()
@@ -173,7 +116,7 @@ class MonteCarlo(LearningStrategy):
                     else:
                         Q = self.get_Q(memory[0][0],memory[0][1],self.agent.action_idx(memory[1]),appx)
                         # print(f"Q: {Q}")
-                        features = self.data_to_features((memory[0][0],memory[0][1],self.agent.action_idx(memory[1])))
+                        features = self.data_to_features(memory[0][0],memory[0][1],self.agent.action_idx(memory[1]))
                         # print(f"{features[0]=}, {g=}, {Q=}, {self.W[0]=}, {alpha=}, {features[0]*alpha*(g-Q)=}")
                         deltaW = alpha * (g - Q) * features
                         # print(f"deltaW: {deltaW}")
@@ -240,17 +183,8 @@ class SARSA(LearningStrategy):
         self.episode_R = []
         self.episode_length = []
         self.Q = None
-        self.W = np.random.rand(3)
         self.time = []
-
-    def get_Q(self, x, y, action, linear_approximation = False):
-        if not linear_approximation:
-            return self.Q[x,y,action]
         
-        terms = np.array([x,y,action])
-        return np.dot(self.W, terms).astype(float)
-        
-
     def get_greedy_action(self,state, appx = False):
         return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action),appx))
     
@@ -315,7 +249,8 @@ class SARSA(LearningStrategy):
                 else: 
                     for (s, a) in E.keys():
                         a_idx = self.agent.action_idx(a)
-                        deltaW = alpha * delta * E[(s,a)] * np.array([s[0],s[1],a_idx])
+                        features = self.data_to_features(s[0],s[1],a_idx)
+                        deltaW = alpha * delta * E[(s,a)] * features
                         self.W += deltaW
                         E[(s,a)] *= self.agent.gamma * self.lam
                 
@@ -366,15 +301,8 @@ class QLearning(LearningStrategy):
         self.episode_R = []
         self.episode_length = []
         self.Q = None
-        self.W = np.random.rand(3)
+        
         self.time = []
-
-    def get_Q(self, x, y, action, linear_approximation = False):
-        if not linear_approximation:
-            return self.Q[x,y,action]
-         
-        terms = np.array([x,y,action])
-        return np.dot(self.W, terms).astype(float)
 
     def get_greedy_action(self,state,appx = False):
         return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action),appx))
@@ -429,7 +357,7 @@ class QLearning(LearningStrategy):
                 if(not appx):
                     self.Q[S[0], S[1], A_idx] += alpha*(R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx) - self.get_Q(S[0], S[1], A_idx))
                 else:
-                    deltaW = alpha * (R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx, appx) - self.get_Q(S[0], S[1], A_idx, appx)) * np.array([S[0],S[1],A_idx])
+                    deltaW = alpha * (R + self.agent.gamma * self.get_Q(S_prime[0], S_prime[1], A_prime_idx, appx) - self.get_Q(S[0], S[1], A_idx, appx)) * self.data_to_features(S[0],S[1],A_idx)
                     self.W += deltaW
 
                 
