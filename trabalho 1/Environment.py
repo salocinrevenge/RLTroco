@@ -3,6 +3,7 @@ from Renderer import Renderer
 import time
 import random
 import numpy as np
+from itertools import product
 
 class Environment:
     default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$', "lava":'L', "acid":'A'}
@@ -31,20 +32,28 @@ class Environment:
     def in_terminal_state(self):
         return self.original_map[self.agent.y][self.agent.x] in (self.default_symbols["goal"], self.default_symbols["lava"])
     
+    def manhattan_distance(self, x1, y1, x2, y2):
+        return abs(x1-x2) + abs(y1-y2)
+    
     def get_dist_goals(self):
-        self.dists_goal = np.full((len(self.map), len(self.map[0])), np.inf)
-        for i in range(len(self.map)):
-            for j in range(len(self.map[0])):
-                if self.original_map[i][j] == self.default_symbols["goal"]:
-                    self.dists_goal[i][j] = 0
-        for i in range(1,len(self.map)-1):
-            for j in range(1,len(self.map[0])-1):
-                self.dists_goal[i][j] = min(self.dists_goal[i][j], self.dists_goal[i-1][j]+1, self.dists_goal[i+1][j]+1, self.dists_goal[i][j-1]+1, self.dists_goal[i][j+1]+1)
+        self.dists_goal = np.full((len(self.map), len(self.map[0])), 0)
 
-    def get_dist_closest_goal(self, agent):
+        goal_pos = []
+
+        for i, j in product(range(len(self.map)), range(len(self.map[0]))):
+            if self.original_map[i][j] == self.default_symbols["goal"]: goal_pos.append((i, j))
+        
+        if len(goal_pos) == 0: raise "AAAAAAAA"
+        
+        for i, j in product(range(1,len(self.map)-1), range(1,len(self.map[0])-1)):
+            # self.dists_goal[i, j] = min(self.dists_goal[i, j], self.dists_goal[i-1, j]+1, self.dists_goal[i+1, j]+1, self.dists_goal[i, j-1]+1, self.dists_goal[i, j+1]+1)
+            self.dists_goal[i, j] = min([self.manhattan_distance(i, j, gp[0], gp[1]) for gp in goal_pos])
+
+
+    def get_dist_closest_goal(self, y, x):
         if self.dists_goal is None:
-            self.dists_goal = self.get_dist_goals()
-        return self.dists_goal[agent.y][agent.x]
+            self.get_dist_goals()
+        return self.dists_goal[y, x]
 
     
     def get_index_object(self, object):
