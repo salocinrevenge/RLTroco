@@ -43,10 +43,8 @@ class MonteCarlo(LearningStrategy):
         self.episode_R = []
         self.episode_length = []
         self.Q = None
-        self.divisao = 3
-        self.W = np.random.rand(self.divisao*2+1)*2-1
+        self.W = np.random.rand(15)*2-1
         self.time = []
-        self.intervals = np.linspace(0.1, 1.0, self.divisao)
 
 
     def get_Q(self, x, y, action, linear_approximation = False):
@@ -60,22 +58,12 @@ class MonteCarlo(LearningStrategy):
         return np.dot(self.W, terms)
 
     def data_to_features(self, data):
-        x, y, action = data
-
-        # Normalize x and y
-        x /= self.environment.get_size()[1]
-        y /= self.environment.get_size()[0]
-
-        # Normalize action
-        action /= len(self.agent.actions)
-
-        # Calculate intervals
-        
-        x_interval = np.abs(self.intervals - x) <= 1/(self.divisao+1)
-        y_interval = np.abs(self.intervals - y) <= 1/(self.divisao+1)
-
-        # Concatenate features
-        return np.concatenate((x_interval, y_interval, [action]))
+        x,y,action = data
+        x= x/self.environment.get_size()[1]
+        y= y/self.environment.get_size()[0]
+        action = action/len(self.agent.actions)
+        return np.array([x,y,action, x*y, y*action, x*action, x*x, y*y, action*action, np.exp(x), np.exp(y), np.exp(action), np.sin(x), np.sin(y), np.sin(action)])
+        # return np.array(data)
     
     def train(self, episodes, randomPolicy = True, exploration_chance = 0, appx = True, alpha = 0.001):
         # Initialize
