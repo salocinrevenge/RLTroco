@@ -23,8 +23,7 @@ Episodios:
 Sarsa:
 - lambdas: 0.1, 0.5, 1
 
-OPCIONAL:
 - Variar alfa
 - Variar estocacidade
 - Variar fator de exploração
-
+- Mudar recompensa
