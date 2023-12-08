@@ -43,17 +43,39 @@ class MonteCarlo(LearningStrategy):
         self.episode_R = []
         self.episode_length = []
         self.Q = None
-        self.W = np.random.rand(3)
+        self.divisao = 3
+        self.W = np.random.rand(self.divisao*2+1)*2-1
         self.time = []
+        self.intervals = np.linspace(0.1, 1.0, self.divisao)
 
 
     def get_Q(self, x, y, action, linear_approximation = False):
         if not linear_approximation:
             return self.Q[x,y,action]
         
-        terms = np.array([x,y,action])
-        return np.dot(self.W, terms).astype(float)
+        terms = self.data_to_features((x,y,action))
+        # print(f"terms: {terms}")
+        # print(f"W: {self.W}")
+        # time.sleep(2)
+        return np.dot(self.W, terms)
 
+    def data_to_features(self, data):
+        x, y, action = data
+
+        # Normalize x and y
+        x /= self.environment.get_size()[1]
+        y /= self.environment.get_size()[0]
+
+        # Normalize action
+        action /= len(self.agent.actions)
+
+        # Calculate intervals
+        
+        x_interval = np.abs(self.intervals - x) <= 1/(self.divisao+1)
+        y_interval = np.abs(self.intervals - y) <= 1/(self.divisao+1)
+
+        # Concatenate features
+        return np.concatenate((x_interval, y_interval, [action]))
     
     def train(self, episodes, randomPolicy = True, exploration_chance = 0, appx = True, alpha = 0.001):
         # Initialize
@@ -76,6 +98,7 @@ class MonteCarlo(LearningStrategy):
                 for s,a,r in path:
                     path_dict[s] = a
                 self.environment.render.show_path(path_dict)
+                print(f"W: {self.W}")
             # escolhe posicao aleatoria valida para o agente
             while True:
                 state = (random.randrange(0, shape[0]), random.randrange(0, shape[1]))
@@ -105,7 +128,12 @@ class MonteCarlo(LearningStrategy):
                     if(not appx):
                         self.Q[memory[0][0],memory[0][1],self.agent.action_idx(memory[1])] = media
                     else:
-                        deltaW = alpha * (g - self.get_Q(memory[0][0],memory[0][1],self.agent.action_idx(memory[1]),appx)) * np.array([memory[0][0],memory[0][1],self.agent.action_idx(memory[1])])
+                        Q = self.get_Q(memory[0][0],memory[0][1],self.agent.action_idx(memory[1]),appx)
+                        # print(f"Q: {Q}")
+                        features = self.data_to_features((memory[0][0],memory[0][1],self.agent.action_idx(memory[1])))
+                        # print(f"{features[0]=}, {g=}, {Q=}, {self.W[0]=}, {alpha=}, {features[0]*alpha*(g-Q)=}")
+                        deltaW = alpha * (g - Q) * features
+                        # print(f"deltaW: {deltaW}")
                         self.W += deltaW
 
 
