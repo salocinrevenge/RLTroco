@@ -8,6 +8,7 @@ class Environment:
     default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$', "lava":'L', "acid":'A'}
     def __init__(self, path, stochastic, display=True) -> None:
         self.display = display
+        self.avaliations = []
         self.original_map = self.load_map(path)
         self.map = self.copy_map(self.original_map)
         self.wait_time = 0
@@ -113,7 +114,7 @@ class Environment:
                     if char == '\n':
                         continue
                     if self.symbols[char] == 'agent':
-                        self.agent = Agent(x=j, y=i, environment=self, display=self.display)
+                        self.avaliations.append((i,j))
                         char = self.default_symbols["path"]
                     grid[-1].append(self.default_symbols[self.symbols[char]])
         return grid

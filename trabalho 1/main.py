@@ -14,13 +14,14 @@ def parse_args():
     parser.add_argument('--exploration-chance', '-c', type=float, default=0.3, dest='exploration_chance')
     parser.add_argument('--learning-strategy', '-l', type=str, dest='learning_strategy', default="monte")
     parser.add_argument('--no-display', '-d', action='store_true', dest='no_display')
+    parser.add_argument('--net', '-n', action='store_true', dest='net')
     parser.add_argument('--stochastic', '-s', type=float, dest='stochastic', default=0.0)
 
     return parser.parse_args()
 
 if __name__ == '__main__':
-    #np.random.seed(42)
-    #random.seed(42)
+    np.random.seed(42)
+    random.seed(42)
     args = parse_args()
 
     room_path = args.room
@@ -35,17 +36,16 @@ if __name__ == '__main__':
         learning_strategy = SARSA(0.5)
     elif learning_strategy in ["qlearning","q-learning","q"]:
         learning_strategy = QLearning()
-    elif learning_strategy in ["linear","lfa","l"]:
-        raise NotImplementedError("Linear Function Approximation not implemented")
     else:
         raise ValueError(f"Invalid learning strategy {args.learning_strategy}")
 
     environment = Environment(room_path, args.stochastic, not args.no_display)
-    agent = environment.getAgent()
+    agent = Agent(x=0, y=0, environment=environment, display=environment.display)
+    environment.agent = agent
     learning_strategy.setup(environment, agent)
 
-    learning_strategy.train(num_episodes, exploration_chance=exploration_chance)
-    print("Done")
+    learning_strategy.train(num_episodes, exploration_chance=exploration_chance, appx=args.net, display=not args.no_display)
+    learning_strategy.test()
 
     if not args.no_display:
         renderer = Renderer(environment, environment.map, "Ambiente")

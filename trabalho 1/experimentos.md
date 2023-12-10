@@ -24,6 +24,6 @@ Sarsa:
 - lambdas: 0.1, 0.5, 1
 
 - Variar alfa
-- Variar estocacidade
-- Variar fator de exploração
-- Mudar recompensa
+- Variar estocacidade 0, 0.1, 0.5, 0.7
+- Variar fator de exploração 0, 0.3, 0.5
+- Mudar recompensa  XXX

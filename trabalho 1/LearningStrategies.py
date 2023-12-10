@@ -54,6 +54,34 @@ class LearningStrategy():
         # Exibir o gráfico
         plt.show()
 
+    def test(self, display = True):
+        shape = self.environment.get_size()
+        num_states = shape[0]*shape[1]
+        success = 0
+        tries = len(self.environment.avaliations)
+        returns = []
+        steps = []
+        for avaliation in self.environment.avaliations:
+            reward = self.environment.setAgentPos(avaliation[0], avaliation[1])
+            step_count = 0
+            for _ in range(num_states):
+                step_count+=1
+                action = self.agent.policy[self.agent.y][self.agent.x]
+                R = self.environment.move(self.agent, action)
+                reward += R
+                if self.environment.in_terminal_state():
+                    success+=1
+                    break
+            steps.append(step_count)
+            returns.append(reward)
+        if display:
+            print(f"Sucesso: {success}/{tries}: {success/tries*100}%")
+            print(f"Recompensa média: {np.asarray(returns).mean()}")
+            print(f"Steps médio: {np.asarray(steps).mean()}")
+        return {"sucesso": success/tries*100, "recompensa": np.asarray(returns).mean(), "steps": np.asarray(steps).mean()}
+            
+
+
 
 class MonteCarlo(LearningStrategy):
     def __init__(self) -> None:
@@ -63,7 +91,7 @@ class MonteCarlo(LearningStrategy):
         self.Q = None
         self.time = []
     
-    def train(self, episodes, randomPolicy = True, exploration_chance = 0, appx = True, alpha = 0.003):
+    def train(self, episodes, randomPolicy = True, exploration_chance = 0, appx = True, alpha = 0.003, display = True):
         # Initialize
         begin_training_time = time.time()
         shape = self.environment.get_size()
@@ -75,16 +103,16 @@ class MonteCarlo(LearningStrategy):
         rewards = []
         for ep in range(episodes):
             start_time = time.time()
-            if ep % (episodes//10) == 0:
-                print(f"{ep=}")
-                path = self.path_from((1,1))
-                print('Tamanho do episódio:', len(path))
-                print('Recompensa', sum([i[2] for i in path]))
-                path_dict = {}
-                for s,a,r in path:
-                    path_dict[s] = a
-                self.environment.render.show_path(path_dict)
-                print(f"W: {self.W}")
+            if display:
+                if ep % (episodes//10) == 0:
+                    print(f"{ep=}")
+                    path = self.path_from((1,1))
+                    print('Tamanho do episódio:', len(path))
+                    print('Recompensa', sum([i[2] for i in path]))
+                    path_dict = {}
+                    for s,a,r in path:
+                        path_dict[s] = a
+                    self.environment.render.show_path(path_dict)
             # escolhe posicao aleatoria valida para o agente
             while True:
                 state = (random.randrange(0, shape[0]), random.randrange(0, shape[1]))
@@ -99,7 +127,7 @@ class MonteCarlo(LearningStrategy):
                         break
             else:
                 action = self.agent.policy[state[0]][state[1]]
-            self.episode(state, action, max_steps= shape[1]*shape[0], exploration_chance = exploration_chance)
+            self.episode(state, action, max_steps= min(1000, shape[1]*shape[0]), exploration_chance = exploration_chance)
             g = 0
             for t in range(len(self.agent.recalls)-1, -1, -1): 
                 memory = self.agent.recalls[t]  # memoria = (estado, acao, reforco)
@@ -133,8 +161,10 @@ class MonteCarlo(LearningStrategy):
             self.time.append(time_difference_seconds)
 
         end_training_time = time.time()
-        print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
-        self.show_loss(rewards, window_size=(len(rewards)//10))
+        if display:
+            print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
+            self.show_loss(rewards, window_size=(len(rewards)//10))
+        return end_training_time - begin_training_time
 
             
     def episode(self, state, action, max_steps, exploration_chance=0):

@@ -107,41 +107,44 @@ class Renderer():
         pygame.display.set_caption(self.title)
         self.screen.fill((0, 0, 0))
 
-        while self.running:
-            pygame.time.delay(10)  # delay de 10ms
-            # Botao de fechar
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    self.running = False
-                # se apertar "p"
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        self.iConteudoAtual = 1
-                        self.content = self.contents[self.iConteudoAtual]
+        try:
+            while self.running:
+                pygame.time.delay(10)  # delay de 10ms
+                # Botao de fechar
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        self.running = False
+                    # se apertar "p"
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_p:
+                            self.iConteudoAtual = 1
+                            self.content = self.contents[self.iConteudoAtual]
 
-                if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_p:
-                        self.iConteudoAtual = 0
-                        self.content = self.contents[self.iConteudoAtual]
+                    if event.type == pygame.KEYUP:
+                        if event.key == pygame.K_p:
+                            self.iConteudoAtual = 0
+                            self.content = self.contents[self.iConteudoAtual]
 
-            # limpa a tela
-            self.screen.fill((0,0,0))
-            
-            # desenha o conteudo
-            for k in range(self.iConteudoAtual+1):
-                for i in range(len(self.contents[k])):
-                    for j in range(len(self.contents[k][0])):
-                        celula = self.contents[k][i][j]
-                        # se o conteudo de celula estiver no dicionario de sprites
-                        if celula in self.sprites:
-                            objeto = celula
-                        else:
-                            objeto = self.chief.symbols[celula]
-                        self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
+                # limpa a tela
+                self.screen.fill((0,0,0))
+                
+                # desenha o conteudo
+                for k in range(self.iConteudoAtual+1):
+                    for i in range(len(self.contents[k])):
+                        for j in range(len(self.contents[k][0])):
+                            celula = self.contents[k][i][j]
+                            # se o conteudo de celula estiver no dicionario de sprites
+                            if celula in self.sprites:
+                                objeto = celula
+                            else:
+                                objeto = self.chief.symbols[celula]
+                            self.screen.blit(self.sprites[objeto], (j*self.escala[0], i*self.escala[1]))
 
-            # Atualizar a tela
-            pygame.display.update()
+                # Atualizar a tela
+                pygame.display.update()
+        except Exception as e:
+            pass
 
 
     def show_path(self, path):
