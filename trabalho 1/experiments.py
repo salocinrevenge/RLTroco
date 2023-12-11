@@ -27,13 +27,13 @@ if __name__ == '__main__':
 
     # para teste de corretude
     approxis = [False]
-    estocasticos = [0.0]
+    estocasticos = [0.7]
     exploration_chance = [0]
     learning_strategys = [MonteCarlo()]
-    episodes = [1000]
+    episodes = [10000]
 
     n = 0
-    nExp = 0
+    nExp = 5
     for episode in episodes:
         for learning_strategy in learning_strategys:
             for exploration in exploration_chance:

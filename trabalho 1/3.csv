@@ -1,0 +1,15 @@
+sala,tempo,taxa,recompensa,passos
+salas/sala1.txt,0.439,100.0,98.0,2.0
+salas/sala2.txt,0.431,100.0,97.57,2.43
+salas/sala3.txt,2.296,44.44,-19.44,63.33
+salas/sala3.1.txt,0.778,100.0,92.26,7.74
+salas/sala3.2.txt,0.565,100.0,94.29,5.71
+salas/sala4.txt,1.995,100.0,84.44,15.56
+salas/sala5.txt,7.895,73.81,-100.76,174.31
+salas/sala6.txt,60.119,56.52,-1221.26,1277.35
+salas/sala7.txt,85.739,17.02,-2085.98,2102.17
+salas/sala8.txt,94.089,33.33,-2174.92,2207.58
+salas/sala9.txt,7.157,82.05,-50.38,122.51
+salas/sala10.txt,1.953,82.61,12.83,43.52
+salas/sala11.txt,1.776,100.0,82.32,7.16
+salas/sala12.txt,1.266,100.0,87.91,12.09

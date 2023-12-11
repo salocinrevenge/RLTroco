@@ -56,7 +56,7 @@ class LearningStrategy():
 
     def test(self, display = True):
         shape = self.environment.get_size()
-        num_states = shape[0]*shape[1]
+        num_states = min(3000,shape[0]*shape[1])
         success = 0
         tries = len(self.environment.avaliations)
         returns = []
@@ -78,7 +78,7 @@ class LearningStrategy():
             print(f"Sucesso: {success}/{tries}: {success/tries*100}%")
             print(f"Recompensa média: {np.asarray(returns).mean()}")
             print(f"Steps médio: {np.asarray(steps).mean()}")
-        return {"sucesso": success/tries*100, "recompensa": np.asarray(returns).mean(), "steps": np.asarray(steps).mean()}
+        return {"sucesso": round(success/tries*100, 2), "recompensa": round(np.asarray(returns).mean(),2), "steps": round(np.asarray(steps).mean(),2)}
             
 
 
@@ -127,7 +127,7 @@ class MonteCarlo(LearningStrategy):
                         break
             else:
                 action = self.agent.policy[state[0]][state[1]]
-            self.episode(state, action, max_steps= min(1000, shape[1]*shape[0]), exploration_chance = exploration_chance)
+            self.episode(state, action, max_steps= min(3000, shape[1]*shape[0]), exploration_chance = exploration_chance)
             g = 0
             for t in range(len(self.agent.recalls)-1, -1, -1): 
                 memory = self.agent.recalls[t]  # memoria = (estado, acao, reforco)
@@ -164,7 +164,7 @@ class MonteCarlo(LearningStrategy):
         if display:
             print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
             self.show_loss(rewards, window_size=(len(rewards)//10))
-        return end_training_time - begin_training_time
+        return round(end_training_time - begin_training_time, 3)
 
             
     def episode(self, state, action, max_steps, exploration_chance=0):
