@@ -42,6 +42,7 @@ class Renderer():
         self.sprites["path"] = pygame.transform.scale(pygame.image.load("imgs/path.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["wall"] = pygame.transform.scale(pygame.image.load("imgs/wall.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["goal"] = pygame.transform.scale(pygame.image.load("imgs/goal.png"), (int(self.escala[0]), int(self.escala[1])))
+        self.sprites["cookie"] = pygame.transform.scale(pygame.image.load("imgs/cookie.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["agent"] = pygame.transform.scale(pygame.image.load("imgs/agent.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["right"] = pygame.transform.scale(pygame.image.load("imgs/right.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["up"] = pygame.transform.scale(pygame.image.load("imgs/up.png"), (int(self.escala[0]), int(self.escala[1])))
@@ -50,10 +51,12 @@ class Renderer():
         self.sprites["acid"] = pygame.transform.scale(pygame.image.load("imgs/acid.png"), (int(self.escala[0]), int(self.escala[1])))
         self.sprites["lava"] = pygame.transform.scale(pygame.image.load("imgs/lava.png"), (int(self.escala[0]), int(self.escala[1])))
 
+
         self.asciiSprites = dict()
         self.asciiSprites["path"]   = '⬛'
         self.asciiSprites["wall"]   = '🧱'
         self.asciiSprites["goal"]   = '⚽'
+        self.asciiSprites["cookie"]   = '🍪'
         self.asciiSprites["agent"]  = '👾' 
         self.asciiSprites["right"]  = '->' #'➡️'
         self.asciiSprites["up"]     = '⬆️⬆️'

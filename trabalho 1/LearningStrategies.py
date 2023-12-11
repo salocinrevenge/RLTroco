@@ -224,7 +224,7 @@ class SARSA(LearningStrategy):
         else:
             return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action), appx))
                 
-    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.001, appx = True):
+    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.001, appx = False, display = True):
         begin_training_time = time.time()
         shape = self.environment.get_size()
         ec = exploration_chance
@@ -236,15 +236,16 @@ class SARSA(LearningStrategy):
         for ep in range(episodes):
             start_time = time.time()
             episode_R = []
-            if ep % (episodes//10) == 0: 
-                print(f"{ep=}")
-                path = self.path_from((1,1))
-                print('Tamanho do episódio:', len(path))
-                print('Recompensa', sum([i[2] for i in path]))
-                path_dict = {}
-                for s,a,r in path:
-                    path_dict[s] = a
-                self.environment.render.show_path(path_dict)
+            if display:
+                if ep % (episodes//10) == 0: 
+                    print(f"{ep=}")
+                    path = self.path_from((1,1))
+                    print('Tamanho do episódio:', len(path))
+                    print('Recompensa', sum([i[2] for i in path]))
+                    path_dict = {}
+                    for s,a,r in path:
+                        path_dict[s] = a
+                    self.environment.render.show_path(path_dict)
 
             E = dict()         
             
@@ -304,8 +305,10 @@ class SARSA(LearningStrategy):
                     self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action), appx))
         
         end_training_time = time.time()
-        print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
-        self.show_loss(rewards, window_size=(len(rewards)//10))
+        if display:
+            print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
+            self.show_loss(rewards, window_size=(len(rewards)//10))
+        return round(end_training_time - begin_training_time, 3)
 
     def path_from(self, starting_point):
         shape = self.environment.get_size()
@@ -343,7 +346,8 @@ class QLearning(LearningStrategy):
         else:
             return max(self.agent.actions, key = lambda action: self.get_Q(state[0], state[1], self.agent.action_idx(action),appx))
                 
-    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.003, appx = True):
+    def train(self, episodes, random_policy=True, exploration_chance=0.3, alpha=0.003, appx = True, display = True):
+        begin_training_time = time.time()
         shape = self.environment.get_size()
         ec = exploration_chance
         num_states = shape[0]*shape[1]
@@ -353,15 +357,16 @@ class QLearning(LearningStrategy):
         for ep in range(episodes):
             start_time = time.time()
             episode_R = []
-            if ep % (episodes//10) == 0: 
-                print(f"{ep=}")
-                path = self.path_from((1,1))
-                print('Tamanho do episódio:', len(path))
-                print('Recompensa', sum([i[2] for i in path]))
-                path_dict = {}
-                for s,a,r in path:
-                    path_dict[s] = a
-                self.environment.render.show_path(path_dict)
+            if display:
+                if ep % (episodes//10) == 0: 
+                    print(f"{ep=}")
+                    path = self.path_from((1,1))
+                    print('Tamanho do episódio:', len(path))
+                    print('Recompensa', sum([i[2] for i in path]))
+                    path_dict = {}
+                    for s,a,r in path:
+                        path_dict[s] = a
+                    self.environment.render.show_path(path_dict)
 
             # escolhe posicao aleatoria valida para o agente
             while True:
@@ -410,6 +415,8 @@ class QLearning(LearningStrategy):
                 else: 
                     self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action),appx))
                     self.agent.book_V[i][j] = max(self.Q[i,j,:])
+        end_training_time = time.time()
+        return round(end_training_time - begin_training_time, 3)
 
     def path_from(self, starting_point):
         shape = self.environment.get_size()

@@ -5,7 +5,7 @@ import random
 import numpy as np
 
 class Environment:
-    default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$', "lava":'L', "acid":'A'}
+    default_symbols = {"agent": '@', "wall": '#', "path": '.', "goal":'$', "lava":'L', "acid":'A', "cookie":'C'}
     def __init__(self, path, stochastic, display=True) -> None:
         self.display = display
         self.avaliations = []
@@ -61,8 +61,10 @@ class Environment:
             return 4
         elif object == self.default_symbols["acid"]:
             return 5
-        else:
+        elif object == self.default_symbols["cookie"]:
             return 6
+        else:
+            return 7
 
     def get_sensors(self, agent, num_sensors, sensors_type):
         sensors = np.zeros(num_sensors)

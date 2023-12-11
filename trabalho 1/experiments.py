@@ -16,7 +16,7 @@ def salvar(dicionario, nome):
         writer.writerow({key: dicionario[key][i] for key in dicionario.keys()})
 
 if __name__ == '__main__':
-    salas = [1,2,3,3.1,3.2,4,5,6,7,8,9,10,11,12]
+    salas = [1,2,3,3.1,3.2,4,5,9,10,11,12]
     for i in range(len(salas)):
         salas[i] = "salas/sala"+str(salas[i])+".txt"
     approxis = [False, True]
@@ -26,14 +26,14 @@ if __name__ == '__main__':
     episodes = [1000, 10000, 100000]
 
     # para teste de corretude
-    approxis = [False]
-    estocasticos = [0.7]
-    exploration_chance = [0]
-    learning_strategys = [MonteCarlo()]
-    episodes = [10000]
+    approxis = [True]
+    estocasticos = [0.5]
+    exploration_chance = [0.3]
+    learning_strategys = [SARSA(0.5)]
+    episodes = [1000]
 
     n = 0
-    nExp = 5
+    nExp = 10
     for episode in episodes:
         for learning_strategy in learning_strategys:
             for exploration in exploration_chance:
