@@ -26,14 +26,14 @@ if __name__ == '__main__':
     episodes = [1000, 10000, 100000]
 
     # para teste de corretude
-    approxis = [True]
+    approxis = [False]
     estocasticos = [0.5]
     exploration_chance = [0.3]
-    learning_strategys = [SARSA(0.5)]
-    episodes = [1000]
+    learning_strategys = [QLearning()]
+    episodes = [10000]
 
     n = 0
-    nExp = 10
+    nExp = 12
     for episode in episodes:
         for learning_strategy in learning_strategys:
             for exploration in exploration_chance:
