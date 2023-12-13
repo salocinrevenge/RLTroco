@@ -33,7 +33,7 @@ if __name__ == '__main__':
     if learning_strategy in ["montecarlo","monte","monte-carlo","mc"]:
         learning_strategy = MonteCarlo()
     elif learning_strategy in ["sarsa" , "s"]:
-        learning_strategy = SARSA(0.1)
+        learning_strategy = SARSA(0.5)
     elif learning_strategy in ["qlearning","q-learning","q"]:
         learning_strategy = QLearning()
     else:
