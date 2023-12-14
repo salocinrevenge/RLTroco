@@ -298,12 +298,14 @@ class SARSA(LearningStrategy):
             
 
         self.agent.startPolicy(shape, random_policy)
+        self.agent.startV(shape)
         for i in range(shape[0]):
             for j in range(shape[1]):
                 if(self.environment.original_map[i][j] == '#'): self.agent.policy[i][j] = "wall"
                 else: 
                     self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action), appx))
-        
+                    self.agent.book_V[i][j] = max(self.Q[i,j,:])
+
         end_training_time = time.time()
         if display:
             print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
@@ -353,6 +355,7 @@ class QLearning(LearningStrategy):
         num_states = shape[0]*shape[1]
         linear_decay = exploration_chance/episodes
         self.Q = np.zeros((shape[0],shape[1], len(self.agent.actions)))
+        rewards = []
 
         for ep in range(episodes):
             start_time = time.time()
@@ -402,6 +405,7 @@ class QLearning(LearningStrategy):
             self.episode_R.append(episode_R)
             self.episode_length.append(step_count)
             ec-=linear_decay
+            rewards.append(np.asarray(self.episode_R[ep]).sum())
             end_time = time.time()
             time_difference_seconds = end_time - start_time
             self.time.append(time_difference_seconds)
@@ -416,6 +420,9 @@ class QLearning(LearningStrategy):
                     self.agent.policy[i][j] = max(self.agent.actions, key = lambda action: self.get_Q(i,j, self.agent.action_idx(action),appx))
                     self.agent.book_V[i][j] = max(self.Q[i,j,:])
         end_training_time = time.time()
+        if display:
+            print(f"Tempo total de treinamento: {end_training_time - begin_training_time} segundos")
+            self.show_loss(rewards, window_size=(len(rewards)//10))
         return round(end_training_time - begin_training_time, 3)
 
     def path_from(self, starting_point):

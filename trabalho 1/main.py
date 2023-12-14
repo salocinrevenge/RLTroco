@@ -33,7 +33,7 @@ if __name__ == '__main__':
     if learning_strategy in ["montecarlo","monte","monte-carlo","mc"]:
         learning_strategy = MonteCarlo()
     elif learning_strategy in ["sarsa" , "s"]:
-        learning_strategy = SARSA(0.5)
+        learning_strategy = SARSA(0.01)
     elif learning_strategy in ["qlearning","q-learning","q"]:
         learning_strategy = QLearning()
     else:
@@ -46,6 +46,7 @@ if __name__ == '__main__':
 
     learning_strategy.train(num_episodes, exploration_chance=exploration_chance, appx=args.net, display=not args.no_display)
     learning_strategy.test()
+    Renderer.create_heatmap(learning_strategy.agent.book_V, cmap='inferno', title='Sample Heatmap')
 
     if not args.no_display:
         renderer = Renderer(environment, environment.map, "Ambiente")
